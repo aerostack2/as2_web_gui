@@ -1,0 +1,339 @@
+cd ~/aerostack2_ws/src/aerostack2/scripts/
+code .
+export AEROSTACK2_SIMULATION_DRONE_ID=drone_sim_14
+
+cd ~/aerostack2_ws/src/aerostack2/stack/user_interface/python_interface
+code .
+
+
+
+# Launch qgroundcontrol
+cd ~/Downloads/
+./QGroundControl.AppImage
+
+cd ~/aerostack2_ws/src/aerostack2/projects/simulation_pixhawk
+
+
+
+cd ~/aerostack2_ws/src/aerostack2/projects/planta_simulation
+
+as2_set_ros2_env
+./launch_simulator.bash
+
+as2_set_ros2_env
+./main_launcher.bash
+
+
+as2_set_ros2_env
+ros2 service call /drone_sim_rafa_0/set_offboard_mode std_srvs/srv/SetBool data:\ true\
+
+ros2 service call /drone_sim_rafa_0/set_arming_state std_srvs/srv/SetBool data:\ true\
+
+COM_RCL_EXCEPT=4
+
+
+// Flightmare
+https://stackoverflow.com/questions/64493692/cc1plus-error-bad-value-tigerlake-for-march-switch-compilation-error
+
+// Compile gps_utils
+cd ~/aerostack2_ws/
+as2_set_ros2_env
+colcon build --packages-up-to as2_core
+
+// Compile flightros
+cd ~/aerostack2_ws/
+as2_set_ros2_env
+colcon build --packages-up-to flightros
+
+cd ~/aerostack2_ws/
+as2_set_ros2_env
+as2 build
+
+
+// Change world
+cd ~/aerostack2_ws/src/flightmare/flightros/src/pilot/
+code .
+
+flight_pilot.cpp -> 
+
+cd ~/aerostack2_ws/src/
+as2_set_ros2_env
+ros2 run flightros flight_pilot_node --ros-args -r __ns:=/$AEROSTACK2_SIMULATION_DRONE_ID
+
+cd ~/aerostack2_ws/src/flightmare/flightrender/RPG_Flightmare
+as2_set_ros2_env
+./RPG_Flightmare.x86_64
+
+
+
+main_launcher:
+
+tmux new-window -t $SESSION:6 -n 'gps_translator'
+tmux send-keys "ros2 launch gps_utils gps_translator_launch.py" C-m
+
+
+
+/home/rafa/aerostack2_ws/src/flightmare/flightlib/include/flightlib/bridges
+
+
+
+
+python manage.py runserver 192.168.30.23:8000
+
+
+http://192.168.30.23:8000/interface/map/
+
+
+
+
+
+FLIGHTMARE_SCENE=5 # PLANTA
+MODEL=fpv
+UAV_X=15.0
+UAV_Y=-10.0
+UAV_Z=0.0
+ros2 launch flightros flight_pilot_launch.py drone_id:=$AEROSTACK2_SIMULATION_DRONE_ID scene_id:=$FLIGHTMARE_SCENE model:=$MODEL posx:=$UAV_X posy:=$UAV_Y posz:=$UAV_Z
+
+
+
+cd ~/Downloads/
+./QGroundControl.AppImage
+
+cd ~/aerostack2_ws/src/aerostack2/projects/simulation_pixhawk
+./launch_simulator.bash
+
+cd ~/aerostack2_ws/src/aerostack2/projects/simulation_pixhawk
+./main_launcher.bash
+
+cd ~/AerostackUI
+conda activate ROSinterface
+python manage.py runserver
+
+cd ~/AerostackUI/ROS
+conda activate ROSinterface
+python AerostackUI.py
+
+cd ~/aerostack2_ws/src/
+ros2 run flightros flight_pilot_node --ros-args -r __ns:=/$AEROSTACK2_SIMULATION_DRONE_ID
+
+cd ~/aerostack2_ws/src/flightmare/flightrender/RPG_Flightmare
+./RPG_Flightmare.x86_64
+
+ros2 run rqt_gui rqt_gui
+
+ros2 service call /drone_sim_rafa_0/set_offboard_mode std_srvs/srv/SetBool data:\ true\
+
+ros2 service call /drone_sim_rafa_0/set_arming_state std_srvs/srv/SetBool data:\ true\
+
+
+cd 
+cd aerostack2_ws/src/aerostack2/stack/user_interface/python_interface/python_interface/
+conda activate ROSinterface
+python drone_interface.py
+
+
+
+
+
+
+
+// Right
+export PX4_HOME_LAT=28.143995
+export PX4_HOME_LON=-16.502476
+export PX4_HOME_ALT=0
+
+UAV_X=70.0
+UAV_Y=0.0
+UAV_Z=0.0
+
+
+// Left
+export PX4_HOME_LAT=28.143993 
+export PX4_HOME_LON=-16.503241
+export PX4_HOME_ALT=0
+
+
+
+cd ~/Downloads/
+./QGroundControl.AppImage
+
+cd ~/aerostack2_ws/src/aerostack2/projects/simulation_pixhawk
+./launch_simulator_fpv.bash
+
+cd ~/aerostack2_ws/src/aerostack2/projects/simulation_pixhawk
+./main_launcher.bash
+
+cd ~/AerostackUI
+conda activate ROSinterface
+python manage.py runserver
+
+cd ~/AerostackUI/ROS
+conda activate ROSinterface
+python AerostackUI.py
+
+cd ~/aerostack2_ws/src/
+FLIGHTMARE_SCENE=5 # PLANTA
+MODEL=ventral
+UAV_X=0.0
+UAV_Y=0.0
+UAV_Z=0.0
+ros2 launch flightros flight_pilot_launch.py drone_id:=$AEROSTACK2_SIMULATION_DRONE_ID scene_id:=$FLIGHTMARE_SCENE model:=$MODEL posx:=$UAV_X posy:=$UAV_Y posz:=$UAV_Z
+
+cd ~/aerostack2_ws/src/flightmare/flightrender/RPG_Flightmare
+./RPG_Flightmare.x86_64
+
+ros2 run rqt_gui rqt_gui
+
+ros2 service call /drone_sim_rafa_0/set_offboard_mode std_srvs/srv/SetBool data:\ true\
+
+ros2 service call /drone_sim_rafa_0/set_arming_state std_srvs/srv/SetBool data:\ true\
+
+
+
+
+
+
+// Drone Sim Predro
+
+UAV_X=0.0
+UAV_Y=0.0
+UAV_Z=0.0
+
+
+export PX4_HOME_LAT=28.143971
+export PX4_HOME_LON=-16.503213
+export PX4_HOME_ALT=0
+
+
+
+// Drone Sim Rafa 
+
+export PX4_HOME_LAT=28.143883
+export PX4_HOME_LON=-16.503207
+export PX4_HOME_ALT=0
+
+
+
+
+
+/home/rafa/aerostack2_ws/src/thirdparty/PX4-Autopilot/Tools/sitl_run.sh
+
+ -Y 1.0
+
+
+
+
+
+ cd ~/aerostack2_ws/src/
+FLIGHTMARE_SCENE=5 # PLANTA
+MODEL=ventral
+UAV_X=0.0
+UAV_Y=-10.0
+UAV_Z=0.0
+drone_id=drone_sim_8
+ros2 launch flightros flight_pilot_launch.py drone_id:=$AEROSTACK2_SIMULATION_DRONE_ID scene_id:=$FLIGHTMARE_SCENE model:=$MODEL posx:=$UAV_X posy:=$UAV_Y posz:=$UAV_Z
+
+
+
+// Rafa 
+export PX4_HOME_LAT=28.143883
+export PX4_HOME_LON=-16.503207
+export PX4_HOME_ALT=0
+
+
+
+
+
+
+
+
+
+cd ~/Downloads/
+./QGroundControl.AppImage
+
+cd ~/aerostack2_ws/src/aerostack2/projects/project_copilot
+./launch_simulator.bash
+
+cd ~/aerostack2_ws/src/aerostack2/projects/project_copilot
+./main_launcher.bash
+
+
+cd ~/AerostackUI
+conda activate ROSinterface
+python manage.py runserver
+
+cd ~/AerostackUI/ROS
+conda activate ROSinterface
+python AerostackUI.py
+
+
+ros2 service call /drone_sim_rafa_0_0/set_offboard_mode std_srvs/srv/SetBool data:\ true\
+
+ros2 service call /drone_sim_rafa_0_0/set_arming_state std_srvs/srv/SetBool data:\ true\
+
+
+
+cd ~/aerostack2_ws/src/
+FLIGHTMARE_SCENE=5 # PLANTA
+MODEL=ventral
+UAV_X=0.0
+UAV_Y=0.0
+UAV_Z=0.0
+ros2 launch flightros flight_pilot_launch.py drone_id:=$AEROSTACK2_SIMULATION_DRONE_ID scene_id:=$FLIGHTMARE_SCENE model:=$MODEL posx:=$UAV_X posy:=$UAV_Y posz:=$UAV_Z
+
+
+
+ros2 run rqt_gui rqt_gui
+
+
+
+
+
+
+ make px4_sitl_rtps gazebo
+
+
+
+ros2 launch differential_flatness_based_controller differential_flattness_controller_launch.py drone_id:=drone0
+
+
+
+
+
+
+
+
+
+
+cd ~/aerostack2_ws/src/aerostack2/projects/project_copilot
+./launch_simulator.bash
+
+cd ~/aerostack2_ws/src/aerostack2/projects/project_copilot
+./main_launcher.bash
+
+cd ~/AerostackUI
+conda activate ROSinterface
+python manage.py runserver
+
+cd ~/AerostackUI/ROS
+conda activate ROSinterface
+python AerostackUI.py
+
+ros2 service call /M200_0/set_offboard_mode std_srvs/srv/SetBool data:\ true\
+
+ros2 service call /M300_0/set_offboard_mode std_srvs/srv/SetBool data:\ true\
+
+ros2 service call /M200_0/set_arming_state std_srvs/srv/SetBool data:\ true\
+
+ros2 service call /M300_0/set_arming_state std_srvs/srv/SetBool data:\ true\
+
+
+
+
+ros2 service call /M300_0/set_offboard_mode std_srvs/srv/SetBool data:\ true\
+
+ros2 service call /M300_0/set_arming_state std_srvs/srv/SetBool data:\ true\
+
+
+// 28.143849, -16.503213
+// 28.143973, -16.503262

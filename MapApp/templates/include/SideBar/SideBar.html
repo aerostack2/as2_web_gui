@@ -1,0 +1,47 @@
+
+<div id="sideBar">
+    <div id="sideBar-left" class="leaflet-sidebar collapsed">
+
+        <!-- nav tabs -->
+        <div class="leaflet-sidebar-tabs">
+            <!-- top aligned tabs -->
+            <ul role="tablist">
+                <li><a href="#sideBar-left-home"              role="tab"><i class="fa fa-home"></i></a></li>
+                <li><a href="#sideBar-left-missionPlanner"    role="tab"><i class="fas fa-map-marked"></i></a></li>
+                <li><a href="#sideBar-left-missionController" role="tab"><i class="fa fa-flag-checkered"></i></a></li>
+                <!-- <li><a href="#sideBar-left-UAVController"     role="tab"><i class="fas fa-gamepad"></i></a></li> -->
+                <li><a href="#sideBar-left-imageOverlay"      role="tab"><i class="fas fa-image"></i></a></li>
+                <li><a href="#sideBar-left-console"           role="tab"><i class="fas fa-terminal"></i></a></li>
+            </ul>
+        </div>
+
+        <div class="leaflet-sidebar-content">
+            {% include 'include/SideBar/Home.html' %}
+            {% include 'include/SideBar/MissionPlanner.html' %}
+            {% include 'include/SideBar//MissionController.html' %}
+            {% include 'include/SideBar/UAVController.html' %}
+            {% include 'include/SideBar/ImageOverlay.html' %}
+            {% include 'include/SideBar/Settings.html' %}
+            {% include 'include/SideBar/Console.html' %}
+        </div>
+    </div>
+
+    <div id="sideBar-right" class="leaflet-sidebar collapsed">
+
+        <!-- nav tabs -->
+        <div class="leaflet-sidebar-tabs">
+            <!-- top aligned tabs -->
+            <ul role="tablist">
+                <li><a href="#sideBar-right-drawInfo"    role="tab"><i class="fas fa-map-marked"></i></a></li>
+                <li><a href="#sideBar-right-missionInfo" role="tab"><i class="fa fa-flag-checkered"></i></a></li>
+                <li><a href="#sideBar-right-UAVInfo"     role="tab"><i class="fas fa-helicopter"></i></a></li>
+            </ul>
+        </div>
+
+        <div class="leaflet-sidebar-content">
+            {% include 'include/SideBar/DrawInfo.html' %}
+            {% include 'include/SideBar/MissionInfo.html' %}
+            {% include 'include/SideBar/UAVInfo.html' %}
+        </div>
+    </div>
+</div>

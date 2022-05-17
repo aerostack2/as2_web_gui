@@ -1,0 +1,39 @@
+{
+    "Marker": {
+        "PointOfInterest": {
+            "parameters": []
+        },
+        "WayPoint": {
+            "parameters": []
+        },
+        "LandPoint": {
+            "parameters": []
+        },
+        "TakeOffPoint": {
+            "parameters": []
+        }
+    },
+    "Line": {
+        "Path": {
+            "parameters": []
+        }
+    },    
+    "Polygon": {
+        "Area": {
+            "parameters": [
+                ["list", "algorithm", "Back and force", ["Back and force", "Spiral"]],
+                ["number", "streetSpacing", 1, "Set street space (m)"],
+                ["number", "wpSpace", 1, "Set waypoint space (m)"],
+                ["number", "verticalOverlap", 50, "Set vertical overlap (%)"],
+                ["number", "horizontalOverlap", 50, "Set horizontal overlap (%)"]
+            ],
+            "sendParameters": [
+                "algorithm",
+                "streetSpacing",
+                "wpSpace",
+                "verticalOverlap",
+                "horizontalOverlap"
+            ]
+        }
+    }
+}   

@@ -1,0 +1,33 @@
+.top-bar {
+  margin-top: 20px;
+}
+
+body {
+  padding-top: 140px;
+}
+
+.card-img-bottom {
+  width: 95%;
+  height: auto;
+  object-fit: cover;
+}
+
+#control-info {
+  overflow: auto;
+  height: 500px;
+}
+
+#control-info-head {
+  position: sticky;
+  top: 0;
+  background-color: white;
+
+  border-top: none !important;
+  border-bottom: none !important;
+  box-shadow: inset 0 2px 0 #000000, inset 0 -2px 0 #000000;
+}
+
+.btn-space {
+  margin-top: 10px;
+  margin-bottom: 10px;
+}

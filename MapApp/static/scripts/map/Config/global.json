@@ -1,0 +1,12 @@
+{
+    "mapCenter": [28.14376, -16.50235],
+    "mapZoom": 20,
+    "mapUrl": "http://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}",
+    "subdomains": ["mt0", "mt1", "mt2", "mt3"],
+    "subdomainsLabels": ["Hybrid", "Streets", "Satellite", "Terrain"],
+    "subdomainsMaxZoom": [22, 22, 22, 22],
+    "useCache": false,
+    "saveToCache": false,
+    "useOnlyCache": false,
+    "cacheMaxAgeInMs": 86400
+}

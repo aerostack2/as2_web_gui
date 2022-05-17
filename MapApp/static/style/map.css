@@ -1,0 +1,19 @@
+#mapid { 
+    height: 100vh; 
+    width: 100vw;
+}
+
+.leaflet-sidebar-content{
+    background-color: transparent;
+}
+
+.leaflet-sidebar-pane{
+    background-color:rgba(255, 255, 255, 0.5);
+}
+
+
+.form-check .form-check-input[type=checkbox] {
+    height: 20px;
+    width: 20px;
+    margin-right: 5px;;
+}

@@ -1,0 +1,32 @@
+{
+    "PointOfInterest": {
+        "svgUrl": "/static/scripts/map/img/icon_models/PointOfInterest.svg",
+        "baseColor": ["#b3b3b3", "#7f7f7f"],
+        "iconSize": [24, 40],
+        "iconAnchor": [12, 40]
+    },
+    "WayPoint": {
+        "svgUrl": "/static/scripts/map/img/icon_models/WayPoint.svg",
+        "baseColor": ["#b3b3b3", "#7f7f7f"],
+        "iconSize": [24, 40],
+        "iconAnchor": [12, 40]
+    },
+    "LandPoint": {
+        "svgUrl": "/static/scripts/map/img/icon_models/LandPoint.svg",
+        "baseColor": ["#b3b3b3", "#7f7f7f"],
+        "iconSize": [24, 40],
+        "iconAnchor": [12, 40]
+    },
+    "TakeOffPoint": {
+        "svgUrl": "/static/scripts/map/img/icon_models/TakeOffPoint.svg",
+        "baseColor": ["#b3b3b3", "#7f7f7f"],
+        "iconSize": [24, 40],
+        "iconAnchor": [12, 40]
+    },
+    "UAVMarker": {
+        "svgUrl": "/static/scripts/map/img/icon_models/UAV.svg",
+        "baseColor": ["#b3b3b3", "#7f7f7f"],
+        "iconSize": [30, 30],
+        "iconAnchor": [15, 15]
+    }
+}
