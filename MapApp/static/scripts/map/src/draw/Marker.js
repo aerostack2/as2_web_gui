@@ -106,7 +106,7 @@ class Marker extends DrawManager {
 
          Marker._getIcon(this._svgConfig, layerOptions);
       }
-      super.codeDraw(values, options, layerOptions);
+      return super.codeDraw(values, options, layerOptions);
    }
 
    /**

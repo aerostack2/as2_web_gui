@@ -514,13 +514,14 @@ class AerostackUI():
     def run(self):
 
         odom = {}
-
+        
         for uav in self.uav_id_list:
             odom[uav] = []
 
         while self.client.connection:
             
             for idx, uav in enumerate(self.uav_id_list):
+                
                 drone_interface_i = self.drone_interface[uav]
 
                 send_info = drone_interface_i.get_info()
@@ -540,7 +541,7 @@ class AerostackUI():
                     print(send_info['pose'])
                     odom[uav] = []
 
-            time.sleep(1)
+            time.sleep(0.1)
             # else:
             #     print("Conecction lost")
             #     time.sleep(1)
@@ -552,7 +553,8 @@ if __name__ == '__main__':
     rclpy.init()
     
     uav_list = [
-        'drone_sim_0'
+        'drone_sim_0',
+        'drone_sim_1'
     ]
     aerostackUI = AerostackUI(uav_list)
     

@@ -66,7 +66,7 @@ class UavDrawer {
      */
     _checkLayer(id, name) {
         if (name in this.UAV_LIST.getDictById(id)) {
-            this.UAV_LIST.getDictById(id)[name].codeLayerDrawn.remove();
+            this.UAV_LIST.getDictById(id)[name].remove();
         }
     }
 
@@ -93,59 +93,56 @@ class UavDrawer {
         if (param in this.UAV_LIST.getDictById(uavId)) {
             switch (param) {
                 case 'pose':
-                    this.UAV_LIST.getDictById(uavId)['layerPose'].codeLayerDrawn.setLatLng([value['lat'], value['lng']]);
-                    this.UAV_LIST.getDictById(uavId)['layerPose'].codeLayerDrawn.options.rotationAngle = Utils.angleENU2NEU(value['yaw']);
+                    this.UAV_LIST.getDictById(uavId)['layerPose'].setLatLng([value['lat'], value['lng']]);
+                    this.UAV_LIST.getDictById(uavId)['layerPose'].options.rotationAngle = Utils.angleENU2NEU(value['yaw']);
                     this._updatePopup(uavId);
                     break;
                 case 'odom':
-                    this.UAV_LIST.getDictById(uavId)['layerOdom'].codeLayerDrawn.setLatLngs(value);
+                    this.UAV_LIST.getDictById(uavId)['layerOdom'].setLatLngs(value);
                     break;
                 case 'desiredPath':
-                    this.UAV_LIST.getDictById(uavId)['layerDesiredPath'].codeLayerDrawn.setLatLngs(value);
+                    this.UAV_LIST.getDictById(uavId)['layerDesiredPath'].setLatLngs(value);
                     break;
                 case 'state':
-                    this.UAV_LIST.getDictById(uavId)['layerPose'].codeLayerDrawn.options['state'] = value;
+                    this.UAV_LIST.getDictById(uavId)['layerPose'].options['state'] = value;
                     break;
                 default:
                     break;
             }
 
         } else {
+            console.log("NewParam")
             let desiredColor = M.UAV_MANAGER.getColors(uavId);
             switch (param) {
                 case 'pose':
                     this._checkLayer(uavId, 'layerPose');
-                    let colors = M.UAV_MANAGER.getColors(uavId);
-                    this.UAV_LIST.getDictById(uavId)['layerPose'] = this._uavMarker;
-                    this.UAV_LIST.getDictById(uavId)['layerPose'].codeDraw([value['lat'], value['lng']], {'uavList': [uavId]}, {'rotationAngle': Utils.angleENU2NEU(value['yaw'])}, desiredColor);
+                    this.UAV_LIST.getDictById(uavId)['layerPose'] = this._uavMarker.codeDraw([value['lat'], value['lng']], {'uavList': [uavId]}, {'rotationAngle': Utils.angleENU2NEU(value['yaw'])}, desiredColor);
                     this._updatePopup(uavId);
                     break;
                 case 'odom':
                     this._checkLayer(uavId, 'layerOdom'); 
-                    this.UAV_LIST.getDictById(uavId)['layerOdom'] = this._odom;
                     let odomValue = value;
                     if (value.length < 2) {
                         odomValue = [value, value];
                     }
-                    this.UAV_LIST.getDictById(uavId)['layerOdom'].codeDraw(odomValue, {'uavList': [uavId]}, {'color': desiredColor[0]});
+                    this.UAV_LIST.getDictById(uavId)['layerOdom'] = this._odom.codeDraw(odomValue, {'uavList': [uavId]}, {'color': desiredColor[0]});
                     break;
                 case 'desiredPath':
                     this._checkLayer(uavId, 'layerDesiredPath');
-                    this.UAV_LIST.getDictById(uavId)['layerDesiredPath'] = this._desiredPath
-                    this.UAV_LIST.getDictById(uavId)['layerDesiredPath'].codeDraw(value, {'uavList': [uavId]}, {'color': desiredColor[0]});
+                    this.UAV_LIST.getDictById(uavId)['layerDesiredPath'] = this._desiredPath.codeDraw(value, {'uavList': [uavId]}, {'color': desiredColor[0]});
                     break;
                 case 'state':
                     this._checkLayer(uavId, 'layerPose');
                     let pose = M.UAV_MANAGER.getDictById(uavId)['pose'];
-                    this.UAV_LIST.getDictById(uavId)['pose'] = pose;
+                    // this.UAV_LIST.getDictById(uavId)['pose'] = pose;
 
-                    this.UAV_LIST.getDictById(uavId)['layerPose'] = this._uavMarker;
-                    this.UAV_LIST.getDictById(uavId)['layerPose'].codeDraw([pose['lat'], pose['lng']], {'uavList': [uavId]}, undefined, desiredColor);
+                    this.UAV_LIST.getDictById(uavId)['layerPose'] = this._uavMarker.codeDraw([pose['lat'], pose['lng']], {'uavList': [uavId]}, undefined, desiredColor);
                     this.UAV_LIST.getDictById(uavId)['layerPose'].options.drawManager.options['state'] = value;
                 default:
                     break;
             }
         }
+
         this.UAV_LIST.getDictById(uavId)[param] = value;
     }
 
@@ -163,7 +160,7 @@ class UavDrawer {
         let popupContent = `<p>Height = ${Utils.round(height, 2)} m</p>`;
 
         if (uavLayer['popup'] == undefined) {
-            uavLayer['marker'] = uavLayer.codeLayerDrawn;
+            uavLayer['marker'] = uavLayer;
 
             let popup = L.popup({
                 closeOnClick: false,
