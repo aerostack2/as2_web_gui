@@ -1,6 +1,7 @@
 #!/bin/bash
 
 pip install numpy
+pip install matplotlib
 pip install scipy
 pip install utm
 pip install Django

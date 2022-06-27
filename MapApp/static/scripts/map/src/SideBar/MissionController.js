@@ -148,7 +148,7 @@ class MissionController {
     _addCallbacks() {
         Utils.addButtonCallback(`${this.htmlId}-btn-reload`, this._reloadMissionCallback.bind(this), []);
         // Utils.addButtonCallback(`${this.htmlId}-btn-edit`,   this._editMissionCallback.bind(this), []);
-        Utils.addButtonCallback(`${this.htmlId}-btn-save`,   this.saveMissionCallback.bind(this), []);
+        Utils.addButtonCallback(`${this.htmlId}-btn-save`,   this._saveMissionCallback.bind(this), []);
         Utils.addButtonCallback(`${this.htmlId}-btn-center`, this._centerMissionCallback.bind(this), []);
         Utils.addButtonCallback(`${this.htmlId}-btn-start`,  this._startMissionCallback.bind(this), []);
         Utils.addButtonCallback(`${this.htmlId}-btn-stop`,   this._stopMissionCallback.bind(this), []);

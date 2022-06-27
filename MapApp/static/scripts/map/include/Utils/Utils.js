@@ -400,7 +400,7 @@ class Utils {
      * @access public
      * @static
      */
-    static _angleENU2NEU(angle) {
+    static angleENU2NEU(angle) {
         angle = angle * 180 / Math.PI ;
 
         // reduce the angle  

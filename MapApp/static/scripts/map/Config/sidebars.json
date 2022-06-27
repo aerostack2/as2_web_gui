@@ -15,8 +15,8 @@
 
     },
     "MissionPlanner": {
-        "defaultHeight": 3,
-        "defaultSpeed": 6
+        "defaultHeight": 10,
+        "defaultSpeed": 1
     },
     "MissionInfo": {
         "infoTableHeader": ["Type", "Value"],

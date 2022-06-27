@@ -1,4 +1,5 @@
 import numpy as np
+from matplotlib import path
 import math
 from numpy import linalg as LA
 import scipy
@@ -107,8 +108,8 @@ def back_and_forth(points, spacing, separation, UAV):
     for i, val in enumerate(x):
         poly_points[i] = (x[i], y[i])
 
-    # p = path.Path(poly_points)
-    p = poly_points
+    p = path.Path(poly_points)
+    # p = poly_points
 
     for i in range(1, int(numberOfLanes+1)):
         xi = min(x)+laneDist*i-laneDist/2

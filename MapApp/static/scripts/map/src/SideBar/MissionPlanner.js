@@ -470,9 +470,6 @@ class MissionPlanner {
                 case 'Marker':
                     switch (options.name) {
                         case 'TakeOffPoint':
-                            console.log("TakeOffPoint");
-                            console.log(values);
-                            console.log(options)
                             this._takeOffPoint.codeDraw(values, options);
                             break;
                         case 'LandPoint':
@@ -574,8 +571,7 @@ class MissionPlanner {
     }
 
     missionInterpreterArea(layerInfo, missionLayer, selectedUavList, validation, info) {
-        console.log("LayerInfo");
-        console.log(layerInfo);
+
         let uavList = Object.keys(layerInfo.drawManager.options.uavList);
 
         if (uavList.length > 2 && uavList.includes('auto')) {
@@ -601,9 +597,6 @@ class MissionPlanner {
                 }
             }
         }
-
-        console.log("missionInterpreterArea");
-        console.log(layerInfo.drawManager.options);
 
         for (let j = 0; j < config.Layers.Polygon.Area.sendParameters.length; j++) {
             let key = config.Layers.Polygon.Area.sendParameters[j];
@@ -666,7 +659,7 @@ class MissionPlanner {
                     this.missionInterpreterArea(layerInfo, missionLayer, selectedUavList, validation, info);
                     break;
                 default:
-                    console.log('Unknown drawManager name');
+                    console.log('Unknown drawManager layer name');
                     console.log(drawManagerInfo.name);
                     break;
             }
@@ -681,10 +674,14 @@ class MissionPlanner {
                 case 'CircleMarker':
                     missionLayer['values'] = [layer._latlng, layer._mRadius];
                     break;
-                case 'Line':
+                case 'Polyline':
                 case 'Polygon':
                 case 'Rectangle':
                     missionLayer['values'] = layer._latlngs;
+                    break;
+                default:
+                    console.log('Unknown drawManager layer type');
+                    console.log(drawManagerInfo.type);
                     break;
             }
 

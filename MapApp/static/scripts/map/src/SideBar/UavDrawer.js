@@ -94,7 +94,7 @@ class UavDrawer {
             switch (param) {
                 case 'pose':
                     this.UAV_LIST.getDictById(uavId)['layerPose'].codeLayerDrawn.setLatLng([value['lat'], value['lng']]);
-                    this.UAV_LIST.getDictById(uavId)['layerPose'].codeLayerDrawn.options.rotationAngle = this.Utils._angleENU2NEU(value['yaw']);
+                    this.UAV_LIST.getDictById(uavId)['layerPose'].codeLayerDrawn.options.rotationAngle = Utils.angleENU2NEU(value['yaw']);
                     this._updatePopup(uavId);
                     break;
                 case 'odom':
@@ -117,7 +117,7 @@ class UavDrawer {
                     this._checkLayer(uavId, 'layerPose');
                     let colors = M.UAV_MANAGER.getColors(uavId);
                     this.UAV_LIST.getDictById(uavId)['layerPose'] = this._uavMarker;
-                    this.UAV_LIST.getDictById(uavId)['layerPose'].codeDraw([value['lat'], value['lng']], {'uavList': [uavId]}, {'rotationAngle': this.Utils._angleENU2NEU(value['yaw'])}, desiredColor);
+                    this.UAV_LIST.getDictById(uavId)['layerPose'].codeDraw([value['lat'], value['lng']], {'uavList': [uavId]}, {'rotationAngle': Utils.angleENU2NEU(value['yaw'])}, desiredColor);
                     this._updatePopup(uavId);
                     break;
                 case 'odom':

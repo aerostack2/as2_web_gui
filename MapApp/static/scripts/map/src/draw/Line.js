@@ -45,7 +45,7 @@ class Polyline extends DrawManager {
      * @returns {void}
      * @access public
      */
-    drawInfoAdd(htmlId, info, name = info.drawManager.options.name, initialHtml = [], endHtml = undefined, uavPickerType = undefined) {
+    drawInfoAdd(htmlId, info, name = info.drawManager.options.name, initialHtml = [], endHtml = undefined, uavPickerType = 'radio') {
 
         let id = htmlId + '-' + info.id;
 
