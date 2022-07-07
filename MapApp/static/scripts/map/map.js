@@ -8,6 +8,7 @@ blocksClassList = [
     ['checkBox', CheckBox],
     ['checkBoxes', CheckBoxes],
     ['collapse', Collapse],
+    ['collapse-order', CollapseOrder],
     ['div', Div],
     ['dropDown', DropDown],
     ['dropDownBtn', DropDownBtn],

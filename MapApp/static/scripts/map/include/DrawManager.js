@@ -183,7 +183,7 @@ class DrawManager {
             collapseHtml.innerHTML = '';
             HTMLUtils.addToExistingElement(`${id}-Collapse-collapsable`, [drawInfo]);
         } else {
-            let drawInfoHtml = HTMLUtils.addDict('collapse', `${id}-Collapse`, {}, `${name} ${info.id}`, false, drawInfo);
+            let drawInfoHtml = HTMLUtils.addDict('collapse-order', `${id}-Collapse`, {}, `${name} ${info.id}`, false, drawInfo);
             HTMLUtils.addToExistingElement(htmlId, [drawInfoHtml]);
         }
         this._drawInfoInitialize(id, info);
@@ -254,7 +254,8 @@ class DrawManager {
         this._addRemoveCallback(id, info);
         this._addHeightRangeCallback(id, info);
         this._addSpeedCallback(id, info);
-        this._addParametersCallback(id, info)
+        this._addParametersCallback(id, info);
+        this._addUpDownCallback(id, info);
 
         // Initialize uav picker
         M.uavPickerInitiliazeCallback(`${id}-UAVPicker`);
@@ -334,19 +335,31 @@ class DrawManager {
      * @access private
      */
     _drawInfoGetHeight(id, info) {
-        let heightMin = info.drawManager.options.height[0];
-        let heightMax = info.drawManager.options.height[1];
+        let height = info.drawManager.options.height[0];
 
-        // Height range HTML
-        let heightInputMin = HTMLUtils.addDict('input', `${id}-heightInputMin`, { 'class': 'form-control', 'required': 'required', 'value': heightMin }, 'text', heightMin);
-        let heightInputMax = HTMLUtils.addDict('input', `${id}-heightInputMax`, { 'class': 'form-control', 'required': 'required', 'value': heightMax }, 'text', heightMax);
-        let heightRangeBtn = HTMLUtils.addDict('button', `${id}-heightRangeBtn`, { 'class': 'btn btn-primary' }, 'Set Height (m)');
+        // Seep range HTML
+        let heightInput = HTMLUtils.addDict('input', `${id}-heightInput`, { 'class': 'form-control', 'required': 'required', 'value': height }, 'text', height);
+        let heightBtn = HTMLUtils.addDict('button', `${id}-heightBtn`, { 'class': 'btn btn-primary' }, 'Set height (m)');
+        let heightInputDiv = HTMLUtils.addDict('div', `none`, { 'class': 'col' }, [heightInput]);
+        let heightBtnDiv = HTMLUtils.addDict('div', `none`, { 'class': 'col-7' }, [heightBtn]);
 
-        let heightInputMinDiv = HTMLUtils.addDict('div', `none`, { 'class': 'col' }, [heightInputMin]);
-        let heightInputMaxDiv = HTMLUtils.addDict('div', `none`, { 'class': 'col' }, [heightInputMax]);
-        let heightRangeBtnDiv = HTMLUtils.addDict('div', `none`, { 'class': 'col-6' }, [heightRangeBtn]);
+        return HTMLUtils.addDict('div', `none`, { 'class': 'row my-1 mx-1' }, [heightInputDiv, heightBtnDiv]);
 
-        return HTMLUtils.addDict('div', `none`, { 'class': 'row my-1 mx-1' }, [heightInputMinDiv, heightInputMaxDiv, heightRangeBtnDiv]);
+        // TODO: Enable height range
+
+        // let heightMin = info.drawManager.options.height[0];
+        // let heightMax = info.drawManager.options.height[1];
+
+        // // Height range HTML
+        // let heightInputMin = HTMLUtils.addDict('input', `${id}-heightInputMin`, { 'class': 'form-control', 'required': 'required', 'value': heightMin }, 'text', heightMin);
+        // let heightInputMax = HTMLUtils.addDict('input', `${id}-heightInputMax`, { 'class': 'form-control', 'required': 'required', 'value': heightMax }, 'text', heightMax);
+        // let heightRangeBtn = HTMLUtils.addDict('button', `${id}-heightRangeBtn`, { 'class': 'btn btn-primary' }, 'Set Height (m)');
+
+        // let heightInputMinDiv = HTMLUtils.addDict('div', `none`, { 'class': 'col' }, [heightInputMin]);
+        // let heightInputMaxDiv = HTMLUtils.addDict('div', `none`, { 'class': 'col' }, [heightInputMax]);
+        // let heightRangeBtnDiv = HTMLUtils.addDict('div', `none`, { 'class': 'col-6' }, [heightRangeBtn]);
+
+        // return HTMLUtils.addDict('div', `none`, { 'class': 'row my-1 mx-1' }, [heightInputMinDiv, heightInputMaxDiv, heightRangeBtnDiv]);
     }
 
     /**
@@ -357,7 +370,10 @@ class DrawManager {
      * @access private
      */
     _addHeightRangeCallback(id, info) {
-        Utils.addFormCallback(`${id}-heightRangeBtn`, [`${id}-heightInputMin`, `${id}-heightInputMax`], ['heightMin', 'heightMax'], this._updateHeightRangeCallback.bind(this), info);
+        // Utils.addFormCallback(`${id}-heightRangeBtn`, [`${id}-heightInputMin`, `${id}-heightInputMax`], ['heightMin', 'heightMax'], this._updateHeightRangeCallback.bind(this), info);
+        
+        // TODO: Enable height range
+        Utils.addFormCallback(`${id}-heightBtn`, [`${id}-heightInput`], ['height'], this._updateHeightRangeCallback.bind(this), info);
     }
 
     /**
@@ -368,7 +384,11 @@ class DrawManager {
      * @access private
      */
     _updateHeightRangeCallback(myargs, args) {
-        myargs[0].drawManager.options.height = [args.heightMin, args.heightMax];
+        // TODO: Enable height range
+        // myargs[0].drawManager.options.height = [args.heightMin, args.heightMax];
+
+        myargs[0].drawManager.options.height[0] = args.height;
+        myargs[0].drawManager.options.height[1] = args.height;
     }
 
     // #endregion
@@ -516,6 +536,46 @@ class DrawManager {
 
         let button = document.getElementById(`${id}-Swarming-DropDown-Btn`);
         button.innerHTML = e.innerHTML;
+    }
+
+    // #endregion
+
+    // #region Layer order management
+
+    /**
+     * Add the callback for the up/down button of the layer order.
+     * @param {string} id - Base id of the HTML element to change.
+     * @param {dict} info - Dict with the layer and the Draw Manager options.
+     * @returns {void}
+     * @access private
+     */
+    _addUpDownCallback(id, info) {
+        Utils.addButtonCallback(`${id}-Collapse-up`, this._upCallback.bind(this), info);
+        Utils.addButtonCallback(`${id}-Collapse-down`, this._downCallback.bind(this), info);
+    }
+
+    /**
+     * Callback for the up button of the layer. Change the layer order.
+     * @param {array} e - List with the info dict, that has the layer and the Draw Manager options.
+     * @param {dict} args - Empty dict.
+     * @returns {void}
+     * @access private
+     */
+    _upCallback(e, args) {
+        let newIndex = M.DRAW_LAYERS.getList().indexOf(e[0].drawManager.id) - 1;
+        M.DRAW_LAYERS.changeLayersOrder(e[0].drawManager.id, newIndex);
+    }
+
+    /**
+     * Callback for the down button of the layer. Change the layer order.
+     * @param {array} e - List with the info dict, that has the layer and the Draw Manager options.
+     * @param {dict} args - Empty dict.
+     * @returns {void}
+     * @access private
+     */
+    _downCallback(e, args) {
+        let newIndex = M.DRAW_LAYERS.getList().indexOf(e[0].drawManager.id) + 1;
+        M.DRAW_LAYERS.changeLayersOrder(e[0].drawManager.id, newIndex);
     }
 
     // #endregion

@@ -123,6 +123,42 @@ class DrawLayers extends SmartListCallbacks {
         }
     }
 
+    /**
+     * Change the item index in the list and in the dictionary by the desired index.
+     * @param {string} itemId - Id of the layer.
+     * @param {string} newIndex - Desired index in the list.
+     * @return {void}
+     * @access public
+     */
+    changeLayersOrder(itemId, newIndex) {
+
+        if (newIndex < 0) {
+            newIndex = 0;
+        } else if (newIndex > this.getList().length) {
+            newIndex = this.getList().length;
+        }
+
+        let oldIndex = super.getList().indexOf(itemId);
+        let newLayerList = Utils.deepCopy(super.getList());
+
+        newLayerList[newIndex] = itemId;
+        newLayerList[oldIndex] = super.getList()[newIndex];
+
+        let newDict = Utils.deepCopy(super.getDict());
+
+        for (let i=super.getList().length; i>=0; i--) {
+            let id = super.getList()[i];
+            super.removeById(id);
+        }
+
+        for (let i=0; i<newLayerList.length; i++) {
+            let id = newLayerList[i];
+            super.addObject(id, newDict[id]);
+        }
+
+        this._objectList = newLayerList;
+    }
+
     // #endregion
 
     // #region Private methods

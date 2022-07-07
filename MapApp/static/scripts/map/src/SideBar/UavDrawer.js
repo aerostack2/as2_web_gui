@@ -111,7 +111,6 @@ class UavDrawer {
             }
 
         } else {
-            console.log("NewParam")
             let desiredColor = M.UAV_MANAGER.getColors(uavId);
             switch (param) {
                 case 'pose':

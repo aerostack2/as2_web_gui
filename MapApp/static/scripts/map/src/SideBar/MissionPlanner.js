@@ -145,16 +145,17 @@ class MissionPlanner {
         let heightRow = HTMLUtils.addDict('splitDivs', 'none', { 'class': 'row my-1 mx-1' }, [heightInput, heightBtn], { 'class': 'col-md-6' });
         mPlannerList.push(heightRow);
 
-        let heightInputMin = HTMLUtils.addDict('input', `${this.htmlId}-heightInputMin`, { 'class': 'form-control', 'required': 'required', }, 'text', 'Min');
-        let heightInputMax = HTMLUtils.addDict('input', `${this.htmlId}-heightInputMax`, { 'class': 'form-control', 'required': 'required', }, 'text', 'Max');
-        let heightRangeBtn = HTMLUtils.addDict('button', `${this.htmlId}-heighRangeBtn`, { 'class': 'btn btn-primary' }, 'Set Height (m)');
+        // TODO: Enable height range
+        // let heightInputMin = HTMLUtils.addDict('input', `${this.htmlId}-heightInputMin`, { 'class': 'form-control', 'required': 'required', }, 'text', 'Min');
+        // let heightInputMax = HTMLUtils.addDict('input', `${this.htmlId}-heightInputMax`, { 'class': 'form-control', 'required': 'required', }, 'text', 'Max');
+        // let heightRangeBtn = HTMLUtils.addDict('button', `${this.htmlId}-heighRangeBtn`, { 'class': 'btn btn-primary' }, 'Set Height (m)');
 
-        let heightInputMinDiv = HTMLUtils.addDict('div', `none`, { 'class': 'col' }, [heightInputMin]);
-        let heightInputMaxDiv = HTMLUtils.addDict('div', `none`, { 'class': 'col' }, [heightInputMax]);
-        let heightRangeBtnDiv = HTMLUtils.addDict('div', `none`, { 'class': 'col-6' }, [heightRangeBtn]);
+        // let heightInputMinDiv = HTMLUtils.addDict('div', `none`, { 'class': 'col' }, [heightInputMin]);
+        // let heightInputMaxDiv = HTMLUtils.addDict('div', `none`, { 'class': 'col' }, [heightInputMax]);
+        // let heightRangeBtnDiv = HTMLUtils.addDict('div', `none`, { 'class': 'col-6' }, [heightRangeBtn]);
 
-        let heightRangeRow = HTMLUtils.addDict('div', `none`, { 'class': 'row my-1 mx-1' }, [heightInputMinDiv, heightInputMaxDiv, heightRangeBtnDiv]);
-        mPlannerList.push(heightRangeRow);
+        // let heightRangeRow = HTMLUtils.addDict('div', `none`, { 'class': 'row my-1 mx-1' }, [heightInputMinDiv, heightInputMaxDiv, heightRangeBtnDiv]);
+        // mPlannerList.push(heightRangeRow);
 
         // Buttons for change draw mode
         mPlannerList.push(HTMLUtils.addDict('button', `${this.htmlId}-mouse`, { 'class': 'btn btn-primary m-1', }, `<i class="fas fa-mouse-pointer"></i>`));
@@ -198,7 +199,8 @@ class MissionPlanner {
 
         // Heigh input
         Utils.addFormCallback(`${this.htmlId}-heightBtn`, [`${this.htmlId}-heightInput`], ['value'], this.inputCallback.bind(this), 'height');
-        Utils.addFormCallback(`${this.htmlId}-heighRangeBtn`, [`${this.htmlId}-heightInputMin`, `${this.htmlId}-heightInputMax`], ['heightMin', 'heightMax'], this.heightRangeCallback.bind(this));
+        // TODO: Enable height range
+        // Utils.addFormCallback(`${this.htmlId}-heighRangeBtn`, [`${this.htmlId}-heightInputMin`, `${this.htmlId}-heightInputMax`], ['heightMin', 'heightMax'], this.heightRangeCallback.bind(this));
 
         // Speed input
         Utils.addFormCallback(`${this.htmlId}-speedBtn`, [`${this.htmlId}-speedInput`], ['value'], this.inputCallback.bind(this), 'speed');
@@ -249,9 +251,9 @@ class MissionPlanner {
      */
     inputCallback(myargs, input) {
         if (myargs[0] == 'height') {
-            this._selectedHeight = [input['height'], input['height']];
+            this._selectedHeight = [input.value, input.value];
         } else if (myargs[0] == 'speed') {
-            this._selectedSpeed = input['speed'];
+            this._selectedSpeed = input.value;
         }
     }
 
@@ -411,21 +413,20 @@ class MissionPlanner {
 
         let saveInfo = {}
         for (let i = 0; i < drawLayers.length; i++) {
-            let id = drawLayers[i];
             let layer_info = M.DRAW_LAYERS.getDictById(drawLayers[i]);
 
             let drawManager = layer_info.drawManager;
             let layer = layer_info.layer;
 
-            saveInfo[id] = {
+            saveInfo[i] = {
                 'options': drawManager.options,
                 'values': []
             };
 
             if (layer._latlng) {
-                saveInfo[id]['values'] = layer._latlng;
+                saveInfo[i]['values'] = layer._latlng;
             } else if (layer._latlngs) {
-                saveInfo[id]['values'] = layer._latlngs;
+                saveInfo[i]['values'] = layer._latlngs;
             }
 
         }
@@ -753,9 +754,6 @@ class MissionPlanner {
 
         if (validation && uavList.length > 0) {
             ConsoleSideBar.addMessage(`Mission confirmed`);
-            console.log('mission is valid');
-            console.log(uavList);
-            console.log(mission);
             M.WS.sendRequestMissionConfirm(
                 this._selectedMission,
                 uavList,
@@ -763,7 +761,6 @@ class MissionPlanner {
             );
         } else {
             if (info.length > 0) {
-                
                 ConsoleSideBar.addError("Mission validation failed: ", info);
                 console.log("Mission validation failed");
                 console.log(info);
