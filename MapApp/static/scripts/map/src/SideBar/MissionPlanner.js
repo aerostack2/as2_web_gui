@@ -70,18 +70,18 @@ class MissionPlanner {
     _addDrawTypes() {
         let status = 'draw';
 
-        let fillColor = '#b3b3b3';
-        let borderColor = '#7f7f7f';
+        let fillColor = config.Layers.defaultFillColor;
+        let borderColor = config.Layers.defaultBorderColor;
+
         let layerOptions = {
             'continueDrawing': false,
             'fillColor': fillColor,
             'borderColor': borderColor,
         }
 
-        let drawDefaultColor = '#B3B3B3';
         let layerOptions2 = {
             'continueDrawing': false,
-            'color': drawDefaultColor,
+            'color': fillColor,
         }
 
         /**

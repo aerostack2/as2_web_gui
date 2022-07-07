@@ -1,4 +1,6 @@
 {
+    "defaultFillColor": "#B3B3B3",
+    "defaultBorderColor": "#7F7F7F",
     "Marker": {
         "PointOfInterest": {
             "parameters": []

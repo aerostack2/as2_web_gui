@@ -23,6 +23,7 @@ class CollapseOrder extends HTMLUtils
         divTittle.setAttribute('class', 'row justify-content-md-center align-middle');
 
         let btnName = document.createElement('button');
+        btnName.setAttribute('id', content.id + '-btn');
         btnName.setAttribute('class', 'btn btn-secondary btn-collap-toggle col-md-9');
         btnName.setAttribute('type', 'button');
         btnName.setAttribute('data-bs-toggle', 'collapse');

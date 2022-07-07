@@ -264,6 +264,32 @@ class DrawManager {
             input.setAttribute('checked', true);
             info.drawManager.options.uavList = { 'auto': true };
         }
+
+        // Add mouseover callback and mouseout callback to change opacity of the layer
+        let btnId = `${id}-Collapse-btn`;
+        let btn = document.getElementById(btnId);
+        console.log("Layer");
+        console.log(info.layer);
+        if (btn != null) {
+            btn.addEventListener('mouseover', function () {
+                // Change the color of the layer
+                let layer = info.layer;
+                if (layer.pm._shape == 'Line' || layer.pm._shape == 'Polygon') {
+                    layer.setStyle({ color: config.Layers.defaultBorderColor });
+                } else {
+                    layer.setOpacity(0.7);
+                }
+            }.bind(this));
+            btn.addEventListener('mouseout', function () {
+                // Change the color of the layer
+                let layer = info.layer;
+                if (layer.pm._shape == 'Line' || layer.pm._shape == 'Polygon') {
+                    layer.setStyle({ color: config.Layers.defaultFillColor });
+                } else {
+                    layer.setOpacity(1.0);
+                }
+            }.bind(this));
+        }
     }
 
     // #region Values management
