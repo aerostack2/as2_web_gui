@@ -23,7 +23,7 @@ class UavInterface(DroneInterface):
 
     def __init__(self, uav_id, speed):
         self.drone_interface = super(UavInterface, self)
-        self.drone_interface.__init__(uav_id, True)
+        self.drone_interface.__init__(uav_id, verbose=False, use_gps=True)
         
         print("Set origin to: ", gps_center)
         self.set_home([gps_center[0], gps_center[1], 0.0])
@@ -464,7 +464,7 @@ class AerostackUI():
     def auto_spin(self):
         while rclpy.ok() and self.keep_running:
             self.executor.spin()
-            time.sleep(0.1)
+            time.sleep(0.5)
 
     def fake_mission(self, msg):
         time.sleep(3)
@@ -537,6 +537,9 @@ class AerostackUI():
                 if send_info['pose']['lat'] != pose_fail1['lat'] or send_info['pose']['lng'] != pose_fail1['lng'] or \
                    send_info['pose']['lat'] != pose_fail2['lat'] or send_info['pose']['lng'] != pose_fail2['lng']:
                     
+                    if len(odom[uav]) > 50:
+                        odom[uav].pop(0)
+                    
                     odom[uav].append(
                         [send_info['pose']['lat'], send_info['pose']['lng']])
                     send_info['odom'] = odom[uav]
@@ -547,7 +550,7 @@ class AerostackUI():
                     print("Error sending info for ", uav)
                     # print(send_info['pose'])
 
-            time.sleep(0.1)
+            time.sleep(0.5)
             # else:
             #     print("Conecction lost")
             #     time.sleep(1)
@@ -559,7 +562,7 @@ if __name__ == '__main__':
     rclpy.init()
     
     uav_list = [
-        'drone0'
+        'drone_0'
     ]
     aerostackUI = AerostackUI(uav_list)
     
