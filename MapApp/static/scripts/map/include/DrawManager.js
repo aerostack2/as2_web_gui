@@ -268,8 +268,6 @@ class DrawManager {
         // Add mouseover callback and mouseout callback to change opacity of the layer
         let btnId = `${id}-Collapse-btn`;
         let btn = document.getElementById(btnId);
-        console.log("Layer");
-        console.log(info.layer);
         if (btn != null) {
             btn.addEventListener('mouseover', function () {
                 // Change the color of the layer

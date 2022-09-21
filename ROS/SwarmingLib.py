@@ -15,11 +15,12 @@ def compute_area(
         street_spacing,
         wpt_separation,
         path_algorithm='Back and force',
-        distribution_algorithm=""):
+        distribution_algorithm="",
+        theta=None):
 
     if path_algorithm == 'Back and force':
         V, wpt_grid = back_and_forth(
-            area, street_spacing, wpt_separation, UAV_initial_position)
+            area, street_spacing, wpt_separation, UAV_initial_position, theta=theta)
     else:
         raise Exception("Unknown path_algorithm")
 
@@ -70,7 +71,7 @@ def split(start, end, segments):
     return points_c
 
 
-def back_and_forth(points, spacing, separation, UAV):
+def back_and_forth(points, spacing, separation, UAV, theta=None):
 
     # Track generation
     x = points[:, 0]
@@ -79,16 +80,24 @@ def back_and_forth(points, spacing, separation, UAV):
     areaWidth = max(x)-min(x)
     thetamin = 0
 
-    # Get optimal direction
-    for i in range(1, 360):
-        theta = i*2*math.pi/360
+    if (theta == None):
+        # Get optimal direction
+        for i in range(1, 360):
+            theta = i*2*math.pi/360
+            R = np.array([[math.cos(theta), -math.sin(theta)],
+                        [math.sin(theta), math.cos(theta)]])
+            aux = R.dot(np.transpose(points))
+            if (max(aux[0, :])-min(aux[0, :])) < areaWidth:
+                areaWidth = max(aux[0, :])-min(aux[0, :])
+                thetamin = theta
+    else:
+        theta = theta*math.pi/180
         R = np.array([[math.cos(theta), -math.sin(theta)],
-                     [math.sin(theta), math.cos(theta)]])
+                      [math.sin(theta), math.cos(theta)]])
         aux = R.dot(np.transpose(points))
-        if (max(aux[0, :])-min(aux[0, :])) < areaWidth:
-            areaWidth = max(aux[0, :])-min(aux[0, :])
-            thetamin = theta
-
+        areaWidth = max(aux[0, :])-min(aux[0, :])
+        thetamin = theta
+    
     R = np.array([[math.cos(thetamin), -math.sin(thetamin)],
                  [math.sin(thetamin), math.cos(thetamin)]])
     aux = R.dot(np.transpose(points))

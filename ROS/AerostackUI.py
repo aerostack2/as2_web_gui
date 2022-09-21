@@ -14,8 +14,8 @@ from as2_msgs.srv import SetOrigin
 
 from python_interface.drone_interface import DroneInterface
 
-# gps_center = [28.143989765431503, -16.503195203840733]
-gps_center = [40.158873, -3.811725]
+gps_center = [28.143989765431503, -16.503195203840733]
+# gps_center = [40.158873, -3.811725]
 ignore_yaw_ = True
 
 class UavInterface(DroneInterface):
@@ -43,30 +43,32 @@ class UavInterface(DroneInterface):
         gps_pose = self.drone_interface.get_gps_pose()
         orientation = self.drone_interface.get_orientation()
         height = self.drone_interface.get_position()[2]
+        id = self.drone_interface.get_drone_id()
+        info = self.drone_interface.get_info()
 
         info_collection = {
-            'id': self.drone_interface.get_drone_id(),
-            'state': {},  # self.drone_interface.get_info(),
+            'id': id,
+            'state': info,
             'pose': {'lat': gps_pose[0], 'lng': gps_pose[1], 'height': height, 'yaw': orientation[2]},
         }
         return info_collection
 
     def run_uav_mission(self, mission, thread):
 
-        print("MISSION")
-        print(mission)
+        # print("MISSION")
+        # print(mission)
 
         uav = str(self.uav_id)
         drone_interface = self.drone_interface
         
         # TODO: CHANGE WHEN NOT SIMULATION
-        print(f"Arming for UAV {uav}")
+        # print(f"Arming for UAV {uav}")
         drone_interface.arm()
-        print(f"Offboard for UAV {uav}")
+        # print(f"Offboard for UAV {uav}")
         drone_interface.offboard()
 
         for element in mission:
-            # print("Element: ")
+            # print(f"Element for UAV {uav}: ")
             # print(element)
             speed = float(element['speed'])
 
@@ -78,14 +80,14 @@ class UavInterface(DroneInterface):
                     element['values'][0][2]
                 ]
 
-                print(f"{uav} - Send takeoff")
-                print(waypoint[2])
+                # print(f"{uav} - Send takeoff")
+                # print(waypoint[2])
                 drone_interface.takeoff(height=waypoint[2], speed=speed)
-                print(f"{uav} - Takeoff done")
+                # print(f"{uav} - Takeoff done")
                 
-                print(f"{uav} - Send takeoff waypoint")
+                # print(f"{uav} - Send takeoff waypoint")
                 drone_interface.go_to_gps_point(waypoint, speed, ignore_yaw_)
-                print(f"{uav} - Takeoff waypoint done")
+                # print(f"{uav} - Takeoff waypoint done")
 
             elif element['name'] == 'LandPoint':
                 waypoint = [
@@ -94,24 +96,24 @@ class UavInterface(DroneInterface):
                     element['values'][0][2]
                 ]
 
-                print(f"{uav} - Send land point")
+                # print(f"{uav} - Send land point")
                 # drone_interface.follow_gps_path([waypoint])
                 drone_interface.go_to_gps_point(waypoint, speed, ignore_yaw_)
-                print(f"{uav} - Land point done")
+                # print(f"{uav} - Land point done")
 
-                print(f"{uav} - Send land")
+                # print(f"{uav} - Send land")
                 drone_interface.land()
-                print(f"{uav} - Land done")
+                # print(f"{uav} - Land done")
 
             elif element['name'] == 'Path':
                 waypoint = element['values']
 
-                print(f"{uav} - Send path")
+                # print(f"{uav} - Send path")
                 # drone_interface.follow_gps_path(waypoint, speed)
                 for i in range(len(waypoint)):
                     waypoint_i = [waypoint[i][0], waypoint[i][1], waypoint[i][2]]
                     drone_interface.go_to_gps_point(waypoint_i, speed, ignore_yaw_)
-                print(f"{uav} - Path done")
+                # print(f"{uav} - Path done")
 
             elif element['name'] == 'WayPoint':
                 waypoint = [
@@ -119,26 +121,26 @@ class UavInterface(DroneInterface):
                     element['values'][0][1],
                     element['values'][0][2]
                 ]
-                print(f"Send waypoint: {waypoint}")
+                # print(f"Send waypoint: {waypoint}")
                 # drone_interface.follow_gps_wp([waypoint], speed)
                 drone_interface.go_to_gps_point(waypoint, speed, ignore_yaw_)
                 time.sleep(2.0) # TODO: Remove this
-                print(f"{uav} - Waypoint done")
+                # print(f"{uav} - Waypoint done")
 
             elif element['name'] == 'Area':
                 waypoint = element['values']
-                print(f"{uav} - Send area")
+                # print(f"{uav} - Send area")
                 # drone_interface.follow_gps_path(waypoint[1:], speed)
                 
                 wp_path = waypoint[1:]
                 for i in range(len(wp_path)):
                     waypoint_i = [wp_path[i][0], wp_path[i][1], wp_path[i][2]]
                     drone_interface.go_to_gps_point(waypoint_i, speed, ignore_yaw_)
-                print(f"{uav} - Area done")
+                # print(f"{uav} - Area done")
 
             else:
-                print("Unknown layer")
-                print("Element: ", element)
+                # print("Unknown layer")
+                # print("Element: ", element)
                 raise Exception(
                     "Unknown mission element name: ", element['name'])
 
@@ -154,8 +156,8 @@ class MissionManager():
 
     def mission_interpreter(self, msg):
 
-        print(f"- Mission interpreter")
-        print(msg)
+        # print(f"- Mission interpreter")
+        # print(msg)
 
         confirm = 'confirmed'
         extra = []
@@ -221,7 +223,7 @@ class MissionManager():
         self.mission_list[mission_id] = mission
         return send_mission
 
-    def swarm_planning(self, uavList, initial_position, last_position, height, values, algorithm, streetSpacing, wpSpace):
+    def swarm_planning(self, uavList, initial_position, last_position, height, values, algorithm, streetSpacing, wpSpace, theta):
 
         zone = None
         letter = None
@@ -274,6 +276,7 @@ class MissionManager():
             wpt_separation=wpSpace,
             path_algorithm=algorithm,
             distribution_algorithm="binpat",
+            theta=theta
         )
 
         # Data format
@@ -347,8 +350,8 @@ class MissionManager():
         name = layer['name']
         uavList = layer['uavList']
         height = layer['height']
-        print("Layer interpreter: " + name)
-        print(layer)
+        # print("Layer interpreter: " + name)
+        # print(layer)
         values = layer['values']
         speed = layer['speed']
         send_layer = {
@@ -410,12 +413,18 @@ class MissionManager():
             algorithm = layer['algorithm']
             streetSpacing = layer['streetSpacing']
             wpSpace = layer['wpSpace']
+            theta = layer['orientation']
+            
+            if float(theta) >= 0 and float(theta) <= 360:
+                theta = float(theta)
+            else:
+                theta = None
 
             next_position = self.get_next_position(
                 sublist, mission, last_position, first_uav, mission_info)
 
             uavPath, path = self.swarm_planning(
-                uavListAux, last_position, next_position, float(height[1]), values[0], str(algorithm), float(streetSpacing), float(wpSpace))
+                uavListAux, last_position, next_position, float(height[1]), values[0], str(algorithm), float(streetSpacing), float(wpSpace), theta)
 
             send_layer['uavPath'] = {}
             for uav in uavListAux:
@@ -452,7 +461,7 @@ class AerostackUI():
 
         self.drone_interface = {}
         for uav_id in self.uav_id_list:
-            print(f"UAV {uav_id} initialize")
+            # print(f"UAV {uav_id} initialize")
             drone_node = UavInterface(uav_id, self.speed)
             self.drone_interface[uav_id] = drone_node
 
@@ -499,7 +508,7 @@ class AerostackUI():
         mission_id = str(msg['payload']['id'])
         mission_list = self.mission_manager.mission_list[mission_id]
 
-        print("- Start mission ", mission_id)
+        # print("- Start mission ", mission_id)
         self.thread_uav = {}
         for uav in mission_list:
             drone_interface = self.drone_interface[uav]
@@ -517,7 +526,7 @@ class AerostackUI():
 
     def run(self):
 
-        print("Running info publisher")
+        # print("Running info publisher")
         odom = {}
         
         for uav in self.uav_id_list:
@@ -537,7 +546,7 @@ class AerostackUI():
                 if send_info['pose']['lat'] != pose_fail1['lat'] or send_info['pose']['lng'] != pose_fail1['lng'] or \
                    send_info['pose']['lat'] != pose_fail2['lat'] or send_info['pose']['lng'] != pose_fail2['lng']:
                     
-                    if len(odom[uav]) > 50:
+                    if len(odom[uav]) > 1000:
                         odom[uav].pop(0)
                     
                     odom[uav].append(

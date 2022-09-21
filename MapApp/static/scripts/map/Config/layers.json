@@ -24,6 +24,7 @@
         "Area": {
             "parameters": [
                 ["list", "algorithm", "Back and force", ["Back and force", "Spiral"]],
+                ["number", "orientation", -1, "Set orientation (°)"],
                 ["number", "streetSpacing", 1, "Set street space (m)"],
                 ["number", "wpSpace", 1, "Set waypoint space (m)"],
                 ["number", "verticalOverlap", 50, "Set vertical overlap (%)"],
@@ -31,6 +32,7 @@
             ],
             "sendParameters": [
                 "algorithm",
+                "orientation",
                 "streetSpacing",
                 "wpSpace",
                 "verticalOverlap",
