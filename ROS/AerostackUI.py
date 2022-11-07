@@ -21,7 +21,7 @@ ignore_yaw_ = True
 class UavInterface(DroneInterface):
     info_lock = threading.Lock()
 
-    def __init__(self, uav_id, speed):
+    def __init__(self, uav_id):
         self.drone_interface = super(UavInterface, self)
         self.drone_interface.__init__(uav_id, verbose=False, use_gps=True)
         
@@ -30,7 +30,6 @@ class UavInterface(DroneInterface):
         print("Origin set")
         
         self.uav_id = uav_id
-        self.speed = speed
 
     def info_lock_decor(func):
         def wrapper(self, *args, **kwargs):
@@ -40,11 +39,11 @@ class UavInterface(DroneInterface):
 
     @info_lock_decor
     def get_info(self):
-        gps_pose = self.drone_interface.get_gps_pose()
-        orientation = self.drone_interface.get_orientation()
-        height = self.drone_interface.get_position()[2]
-        id = self.drone_interface.get_drone_id()
-        info = self.drone_interface.get_info()
+        gps_pose = self.drone_interface.gps_pose
+        orientation = self.drone_interface.orientation
+        height = self.drone_interface.position[2]
+        id = self.drone_interface.drone_id
+        info = self.drone_interface.info
 
         info_collection = {
             'id': id,
@@ -457,12 +456,10 @@ class AerostackUI():
 
         self.uav_id_list = uav_id_list
 
-        self.speed = 6
-
         self.drone_interface = {}
         for uav_id in self.uav_id_list:
             # print(f"UAV {uav_id} initialize")
-            drone_node = UavInterface(uav_id, self.speed)
+            drone_node = UavInterface(uav_id)
             self.drone_interface[uav_id] = drone_node
 
         time.sleep(1)

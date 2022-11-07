@@ -1,1 +1,15 @@
+build/
+.vscode/
+install/
+log/
+logs/
+doxygen/
+.cache/
+compile_commands.json
+COLCON_IGNORE
+neovim.json
 __pycache__
+AerostackUI/__pycache__
+MapApp/__pycache__
+MapApp/migrations/__pycache__
+ROS/__pycache__
