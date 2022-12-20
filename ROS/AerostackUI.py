@@ -5,7 +5,7 @@ import threading
 import time
 
 import websocket
-from websocket_client import WebSocketClient
+from as2_web_api.websocket_client import WebSocketClient
 import copy
 import Unit_conversion as utm
 import SwarmingLib as swarm
