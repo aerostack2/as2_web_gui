@@ -21,16 +21,16 @@ class WebSocketClientInterface:
         self.data = WebSocketClientData()
 
         self.logger = WebSocketClientLogger(verbose)
-        self.websocket = WebSocketClient(
+        self.websocket_client = WebSocketClient(
             self.host, self.logger, self.on_open,
             self.on_message, self.on_error, self.on_close)
 
         self.basic_messages = BasicMessages(
-            self.websocket, self.data, self.logger)
+            self.websocket_client, self.data, self.logger)
         self.info_messages = InfoMessages(
-            self.websocket, self.data, self.logger)
+            self.websocket_client, self.data, self.logger)
         self.request_messages = RequestMessages(
-            self.websocket, self.data, self.logger)
+            self.websocket_client, self.data, self.logger)
 
         self.message_callback_list = []
         self.connection = True
@@ -39,15 +39,13 @@ class WebSocketClientInterface:
         self.thread = threading.Thread(target=self.run)
         self.thread.start()
 
-        self.websocket.run_forever()
-
     def run(self):
         """
         Keep websocket open
         """
         self.logger("run", "Running")
         while self.connection:
-            self.websocket.run_forever()
+            self.websocket_client.websocket.run_forever()
         self.thread.join()
 
     def close(self):
@@ -55,14 +53,14 @@ class WebSocketClientInterface:
         Close websocket connection
         """
         self.logger("close", "Closing")
-        self.websocket.close()
+        self.websocket_client.websocket.close()
 
-    def on_error(self, websocket_input: websocket, error: str):
+    def on_error(self, websocket_input: websocket, error):
         """
         This function is called when websocket has an error
         """
         self.logger("on_error", f"Error: {error}")
-        self.websocket.close()
+        self.websocket_client.websocket.close()
 
     def on_close(self, websocket_input: websocket, close_status_code, close_msg: str):
         """

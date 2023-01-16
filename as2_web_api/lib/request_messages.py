@@ -27,7 +27,7 @@ class RequestMessages:
             'status': 'response',
             'payload': payload
         }
-        self.websocket.send(msg, mgs_receptor)  # To all webpage clients
+        self.websocket.send(self.data.client_id, msg, mgs_receptor)  # To all webpage clients
 
     def mission_confirm(self, new_mission_id: int, status: str, old_id: int,
                         author: int, extra: list = []) -> None:

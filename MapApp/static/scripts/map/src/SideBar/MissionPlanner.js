@@ -27,7 +27,7 @@ class MissionPlanner {
          * @access private
          */
         this._selectedMission = 'New Mission';
-        
+
         /**
          * Dict with UAV id as keys and select status as values.
          * @type {dict}
@@ -58,7 +58,7 @@ class MissionPlanner {
         this._addPlannerHTML();
     }
 
-    
+
 
     // #region Planner
 
@@ -251,8 +251,10 @@ class MissionPlanner {
      */
     inputCallback(myargs, input) {
         if (myargs[0] == 'height') {
+            DrawController.drawMouse();
             this._selectedHeight = [input.value, input.value];
         } else if (myargs[0] == 'speed') {
+            DrawController.drawMouse();
             this._selectedSpeed = input.value;
         }
     }
@@ -275,7 +277,9 @@ class MissionPlanner {
      * @access private
      */
     userDrawCallbacks(args = []) {
-        args[0][0].userDraw({ 'height': this._selectedHeight, 'speed': this._selectedSpeed });
+        let selected_height = Object.assign([], this._selectedHeight);
+        let selected_speed = Object.assign([], this._selectedSpeed);
+        args[0][0].userDraw({ 'height': selected_height, 'speed': selected_speed });
     }
 
     // #endregion
@@ -295,7 +299,7 @@ class MissionPlanner {
             this._initialized = true;
         }
     }
-    
+
     /**
      * Callback to new UAV added.
      * @param {array} myargs - List of arguments passed to the callback.
@@ -481,7 +485,6 @@ class MissionPlanner {
                             break;
                         default:
                             throw new Error(`Unknown marker type ${options.name}`);
-                            break;
                     }
                     break;
                 case 'Polyline':
@@ -504,7 +507,6 @@ class MissionPlanner {
                     break;
                 default:
                     throw new Error(`Unknown type ${options.name}`);
-                    break;
             }
         }
 

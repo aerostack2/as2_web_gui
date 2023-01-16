@@ -28,7 +28,7 @@ class BasicMessages:
             'status': 'request',
             'payload': payload
         }
-        self.websocket.send(msg, 'server')  # To server
+        self.websocket.send(self.data.client_id, msg, 'server')  # To server
 
     def handshake(self, rol: str) -> None:
         """

@@ -26,7 +26,7 @@ class InfoMessages:
             'header': header,
             'payload': payload
         }
-        self.websocket.send(msg, 'webpage')  # To all webpage clients
+        self.websocket.send(self.data.client_id, msg, 'webpage')  # To all webpage clients
 
     def send_uav_info(self, uav_info: dict, override=False) -> None:
         """ Send UAV info message to server
