@@ -1,8 +1,13 @@
 """ Test client """
+
+import sys
+import os
+sys.path.insert(0, os.getcwd())
+
 import time
 import math
 
-from as2_web_api.websocket_interface import WebSocketClientInterface
+from AerostackUI.websocket_interface import WebSocketClientInterface
 
 
 def planner(websocket_client: WebSocketClientInterface, uav_id: int, layers: dict):

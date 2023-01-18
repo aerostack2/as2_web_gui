@@ -1,0 +1,9 @@
+numpy
+matplotlib
+scipy
+utm
+Django==4.0.0
+websockets
+websocket-client
+channels==3.0.4
+attrs

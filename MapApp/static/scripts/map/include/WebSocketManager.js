@@ -13,6 +13,7 @@ class WebSocketManager {
          * @type {WebSocket}
          * @access private
          */
+        console.log('WebSocketManager: ' + host)
         this._webSocket = new WebSocket(host);
 
         // Conect web socket callbacks to class functions
