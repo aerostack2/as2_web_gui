@@ -1,9 +1,9 @@
 {
     "Home": {
-        "goTo": [28.14376, -16.50235],
+        "goTo": [40.158157, -3.381046],
         "goToZoom": 20,
         "UAVname": "UAV1",
-        "UAVvalue": [28.1439717, -16.5032634]
+        "UAVvalue": [40.158157, -3.381046]
     },
     "ImageOverlay": {
         "opacity": 0.7,
@@ -15,8 +15,8 @@
 
     },
     "MissionPlanner": {
-        "defaultHeight": 10,
-        "defaultSpeed": 1
+        "defaultHeight": 2.0,
+        "defaultSpeed": 0.5
     },
     "MissionInfo": {
         "infoTableHeader": ["Type", "Value"],

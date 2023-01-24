@@ -2,8 +2,8 @@
 mission_manager.py
 """
 
-import SwarmingLib as swarm
-import Unit_conversion as utm
+import as2_interface.SwarmingLib as swarm
+import as2_interface.Unit_conversion as utm
 import numpy as np
 import copy
 
@@ -76,7 +76,7 @@ class MissionManager():
             send_layer, mission, new_last_position = self.layer_interpreter(
                 layer, mission, last_position, first_uav, mission_info)
 
-            for uav in new_last_position.items():
+            for uav in new_last_position:
                 last_position[uav] = new_last_position[uav]
 
             send_mission['layers'].append(send_layer)

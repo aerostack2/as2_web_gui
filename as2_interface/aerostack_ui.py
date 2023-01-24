@@ -3,15 +3,17 @@ aerostack_ui.py
 """
 
 from AerostackUI.websocket_interface import WebSocketClientInterface
-from mission_manager import MissionManager
-from uav_interface import UavInterface
+from .mission_manager import MissionManager
+from .uav_interface import UavInterface
 import time
 import threading
+
 
 class AerostackUI():
     """ Aerostack UI """
 
-    def __init__(self, uav_id_list: list):
+    def __init__(self, uav_id_list: list, verbose: bool = False, sim_mode: bool = False,
+                 use_sim_time: bool = False):
         self.client = WebSocketClientInterface(
             "ws://127.0.0.1:8000/ws/user/", verbose=False)
 
@@ -27,7 +29,7 @@ class AerostackUI():
         self.drone_interface = {}
         for uav_id in self.uav_id_list:
             # print(f"UAV {uav_id} initialize")
-            drone_node = UavInterface(uav_id)
+            drone_node = UavInterface(uav_id, verbose, sim_mode, use_sim_time)
             self.drone_interface[uav_id] = drone_node
 
         time.sleep(1)
@@ -42,10 +44,8 @@ class AerostackUI():
 
     def mission_confirm_callback(self, msg: dict, args):
         """ Mission confirm callback """
-        print("-Mission confirm callback")
         confirm_msg = self.mission_manager.mission_interpreter(msg)
 
-        print("-Mission request callback")
         self.client.request_messages.mission_confirm(
             confirm_msg['id'],
             confirm_msg['status'],
@@ -55,25 +55,20 @@ class AerostackUI():
         )
 
         if confirm_msg['status'] == 'confirmed':
-
             mission_planner_msg = self.mission_manager.mission_planner(
                 str(confirm_msg['id']),
                 msg['payload']
             )
 
             mission_planner_msg['status'] = confirm_msg['status']
-            print("Send mission confirm: ", mission_planner_msg)
             self.client.info_messages.send_mission_info(mission_planner_msg)
 
     def start_mission_callback(self, msg: dict, args):
         """ Start mission callback """
-        # print("AerostackUI - Start mission")
-        # print(msg)
 
         mission_id = str(msg['payload']['id'])
         mission_list = self.mission_manager.mission_list[mission_id]
 
-        # print("- Start mission ", mission_id)
         self.thread_uav = {}
         for uav in mission_list:
             drone_interface = self.drone_interface[uav]
@@ -94,9 +89,9 @@ class AerostackUI():
         """ Run """
 
         print("Running info publisher")
-        # odom = {}
-        # for uav in self.uav_id_list:
-        #     odom[uav] = []
+        odom = {}
+        for uav in self.uav_id_list:
+            odom[uav] = []
 
         while self.client.connection:
             for idx, uav in enumerate(self.uav_id_list):
@@ -113,12 +108,12 @@ class AerostackUI():
                    send_info['pose']['lat'] != pose_fail2['lat'] or \
                    send_info['pose']['lng'] != pose_fail2['lng']:
 
-                    # if len(odom[uav]) > 1000:
-                    #     odom[uav].pop(0)
+                    if len(odom[uav]) > 50:
+                        odom[uav].pop(0)
 
-                    # odom[uav].append(
-                    #     [send_info['pose']['lat'], send_info['pose']['lng']])
-                    # send_info['odom'] = odom[uav]
+                    odom[uav].append(
+                        [send_info['pose']['lat'], send_info['pose']['lng']])
+                    send_info['odom'] = odom[uav]
                     self.client.info_messages.send_uav_info(send_info)
                     # print(f"UAV {uav} info sent:")
                     # print(send_info)
@@ -131,4 +126,3 @@ class AerostackUI():
             #     print("Conecction lost")
             #     time.sleep(1)
         print("Connection lost")
-        self.get_info_thread.join()

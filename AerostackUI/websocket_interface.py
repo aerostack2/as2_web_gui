@@ -60,6 +60,7 @@ class WebSocketClientInterface:
         This function is called when websocket has an error
         """
         self.logger("on_error", f"Error: {error}")
+        print("ERROR: ", error)
         self.websocket_client.websocket.close()
 
     def on_close(self, websocket_input: websocket, close_status_code, close_msg: str):

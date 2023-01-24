@@ -250,11 +250,10 @@ class MissionPlanner {
      * @access private
      */
     inputCallback(myargs, input) {
+        DrawController.drawMouse();
         if (myargs[0] == 'height') {
-            DrawController.drawMouse();
             this._selectedHeight = [input.value, input.value];
         } else if (myargs[0] == 'speed') {
-            DrawController.drawMouse();
             this._selectedSpeed = input.value;
         }
     }
@@ -277,9 +276,7 @@ class MissionPlanner {
      * @access private
      */
     userDrawCallbacks(args = []) {
-        let selected_height = Object.assign([], this._selectedHeight);
-        let selected_speed = Object.assign([], this._selectedSpeed);
-        args[0][0].userDraw({ 'height': selected_height, 'speed': selected_speed });
+        args[0][0].userDraw({ 'height': this._selectedHeight, 'speed': this._selectedSpeed });
     }
 
     // #endregion

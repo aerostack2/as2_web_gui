@@ -461,6 +461,10 @@ class DrawManager {
      */
     _updateSpeedCallback(myargs, args) {
         myargs[0].drawManager.options.speed = args.speed;
+
+        // TODO: Fix bug, when the speed is changed, the speed of mission planner is also changed
+        let speed_input = document.getElementById('sideBar-left-missionPlanner-content-speedInput');
+        speed_input.value = args.speed;
     }
 
     // #endregion

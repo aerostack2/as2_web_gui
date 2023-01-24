@@ -40,7 +40,6 @@ class RequestMessages:
             author (int): id of the client that requested the mission.
             extra (list, optional): list of extra information. Defaults to [].
         """
-        print("-mission_confirm: Mission request callback")
         confirm_payload = {
             'id': new_mission_id,
             'status': status,

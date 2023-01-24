@@ -4,6 +4,7 @@ uav_interface.py
 
 from as2_python_api.drone_interface_gps import DroneInterfaceGPS
 from typing import Callable, List
+from as2_msgs.msg import YawMode
 import time
 import threading
 
@@ -12,11 +13,15 @@ class UavInterface(DroneInterfaceGPS):
     """ UAV Interface """
     info_lock = threading.Lock()
 
-    def __init__(self, uav_id: str, sim_mode: bool = False):
-        self.drone_interface = super(UavInterface, self)
-        self.drone_interface.__init__(uav_id, verbose=False)
-        self.uav_id = uav_id
+    def __init__(self, drone_id: str, verbose: bool = False, sim_mode: bool = False,
+                 use_sim_time: bool = False):
+        # self.drone_interface = super(UavInterface, self)
+        super().__init__(drone_id=drone_id, verbose=verbose, use_sim_time=use_sim_time)
+        # self.drone_interface.__init__(drone_id=drone_id, verbose=verbose, use_sim_time=use_sim_time)
         self.sim_mode = sim_mode
+        self.yaw_mode = YawMode()
+        self.yaw_mode.mode = YawMode.PATH_FACING
+        self.yaw_mode.angle = 0.0
 
     def info_lock_decor(func: Callable) -> Callable:
         def wrapper(self, *args, **kwargs):
@@ -28,10 +33,10 @@ class UavInterface(DroneInterfaceGPS):
     def get_info(self):
         """ Get info """
         gps_pose = self.gps.pose
-        orientation = self.drone_interface.orientation
-        height = self.drone_interface.position[2]
-        id = self.drone_interface.drone_id
-        info = self.drone_interface.info
+        orientation = self.orientation
+        height = self.position[2]
+        id = self.drone_id
+        info = self.info
 
         info_collection = {
             'id': id,
@@ -41,42 +46,21 @@ class UavInterface(DroneInterfaceGPS):
         }
         return info_collection
 
-    def run_uav_mission(self, mission: list, thread: threading.Thread, yaw_mode: bool = True) -> None:
+    def run_uav_mission(self, mission: list, thread: threading.Thread) -> None:
         """ Run UAV mission """
 
-        # print("MISSION")
-        # print(mission)
+        print("Running mission: ")
+        print(mission)
 
-        # uav = str(self.uav_id)
-        drone_interface = self.drone_interface
-
-        # TODO: CHANGE WHEN NOT SIMULATION
-        # print(f"Arming for UAV {uav}")
-        # drone_interface.arm()
-        # print(f"Offboard for UAV {uav}")
-        # drone_interface.offboard()
+        if self.sim_mode:
+            self.arm()
+            self.offboard()
 
         for element in mission:
-            # print(f"Element for UAV {uav}: ")
-            # print(element)
             speed = float(element['speed'])
 
             if element['name'] == 'TakeOffPoint':
-
-                waypoint = [
-                    element['values'][0][0],
-                    element['values'][0][1],
-                    element['values'][0][2]
-                ]
-
-                # print(f"{uav} - Send takeoff")
-                # print(waypoint[2])
-                drone_interface.takeoff(height=waypoint[2], speed=speed)
-                # print(f"{uav} - Takeoff done")
-
-                # print(f"{uav} - Send takeoff waypoint")
-                drone_interface.go_to_gps_point(waypoint, speed, yaw_mode)
-                # print(f"{uav} - Takeoff waypoint done")
+                self.takeoff(height=element['values'][0][2], speed=speed)
 
             elif element['name'] == 'LandPoint':
                 waypoint = [
@@ -84,25 +68,13 @@ class UavInterface(DroneInterfaceGPS):
                     element['values'][0][1],
                     element['values'][0][2]
                 ]
+                self.goto(*waypoint, speed, self.yaw_mode.mode, self.yaw_mode.angle)
 
-                # print(f"{uav} - Send land point")
-                # drone_interface.follow_gps_path([waypoint])
-                drone_interface.go_to_gps_point(waypoint, speed, yaw_mode)
-                # print(f"{uav} - Land point done")
-
-                # print(f"{uav} - Send land")
-                drone_interface.land()
-                # print(f"{uav} - Land done")
+                self.land()
 
             elif element['name'] == 'Path':
-                waypoint = element['values']
-
-                # print(f"{uav} - Send path")
-                # drone_interface.follow_gps_path(waypoint, speed)
-                for wp in waypoint:
-                    drone_interface.go_to_gps_point(
-                        [wp[0], wp[1], wp[2]], speed, yaw_mode)
-                # print(f"{uav} - Path done")
+                waypoints = element['values']
+                self.follow_path(waypoints, speed, self.yaw_mode.mode, self.yaw_mode.angle)
 
             elif element['name'] == 'WayPoint':
                 waypoint = [
@@ -110,21 +82,11 @@ class UavInterface(DroneInterfaceGPS):
                     element['values'][0][1],
                     element['values'][0][2]
                 ]
-                # print(f"Send waypoint: {waypoint}")
-                # drone_interface.follow_gps_wp([waypoint], speed)
-                drone_interface.go_to_gps_point(waypoint, speed, yaw_mode)
-                time.sleep(2.0)  # TODO: Remove this
-                # print(f"{uav} - Waypoint done")
+                self.goto(*waypoint, speed, self.yaw_mode.mode, self.yaw_mode.angle)
 
             elif element['name'] == 'Area':
-                waypoint = element['values']
-                # print(f"{uav} - Send area")
-                # drone_interface.follow_gps_path(waypoint[1:], speed)
-
-                for wp in waypoint[1:]:
-                    drone_interface.go_to_gps_point(
-                        [wp[0], wp[1], wp[2]], speed, yaw_mode)
-                # print(f"{uav} - Area done")
+                waypoints = element['values']
+                self.follow_path(waypoints, speed, self.yaw_mode.mode, self.yaw_mode.angle)
 
             else:
                 # print("Unknown layer")
