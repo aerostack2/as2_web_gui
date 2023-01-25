@@ -25,8 +25,8 @@
             "parameters": [
                 ["list", "algorithm", "Back and force", ["Back and force", "Spiral"]],
                 ["number", "orientation", -1, "Set orientation (°)"],
-                ["number", "streetSpacing", 1, "Set street space (m)"],
-                ["number", "wpSpace", 1, "Set waypoint space (m)"],
+                ["number", "streetSpacing", 5, "Set street space (m)"],
+                ["number", "wpSpace", 1000, "Set waypoint space (m)"],
                 ["number", "verticalOverlap", 50, "Set vertical overlap (%)"],
                 ["number", "horizontalOverlap", 50, "Set horizontal overlap (%)"]
             ],

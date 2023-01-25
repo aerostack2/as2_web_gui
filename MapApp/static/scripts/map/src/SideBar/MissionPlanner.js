@@ -515,7 +515,18 @@ class MissionPlanner {
     // #region Mission process
 
     missionInterpreterTakeOffPoint(layerInfo, missionLayer, selectedUavListTakeOff, validation, info) {
-        let minDistance = Math.pow(10, -6);
+        let minDistance = Math.pow(10, -4);
+
+        if (selectedUavListTakeOff.length == 0) {
+            validation = false;
+            info.push(`TakeOff with no UAV available`);
+            return;
+        } else if (selectedUavListTakeOff.length == 1) {
+            missionLayer['uavList'].push(selectedUavListTakeOff[0]);
+            // Remove the selected UAV from the list
+            selectedUavListTakeOff.splice(0, 1);
+            return;
+        }
 
         let takeOffPosition = layerInfo.layer.getLatLng();
         for (let j = 0; j < selectedUavListTakeOff.length; j++) {

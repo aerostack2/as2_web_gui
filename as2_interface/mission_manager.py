@@ -115,12 +115,12 @@ class MissionManager():
 
         # Swarm planning
         uav_initial_position = []
-        for uav in initial_position_utm.items():
+        for uav in initial_position_utm:
             uav_initial_position.append(
                 [initial_position_utm[uav][0], initial_position_utm[uav][1]])
 
         uav_last_position = []
-        for uav in last_position_utm.items():
+        for uav in last_position_utm:
             uav_last_position.append(
                 [last_position_utm[uav][0], last_position_utm[uav][1]])
 
@@ -217,11 +217,11 @@ class MissionManager():
         """ Layer interpreter """
         name = layer['name']
         uav_list = layer['uavList']
-        height = layer['height']
+        height = [float(layer['height'][0]), float(layer['height'][1])]
         # print("Layer interpreter: " + name)
         # print(layer)
         values = layer['values']
-        speed = layer['speed']
+        speed = float(layer['speed'])
         send_layer = {
             'name': name,
             'uavList': uav_list,
@@ -255,7 +255,7 @@ class MissionManager():
             waypoints = []
             for point in layer['values']:
                 waypoints.append(
-                    [point['lat'], point['lng'], layer['height'][1]])
+                    [point['lat'], point['lng'], height[1]])
 
             new_last_position[uav] = waypoints[len(waypoints)-1]
 

@@ -9,7 +9,10 @@ if __name__ == '__main__':
     rclpy.init()
 
     aerostackUI = AerostackUI(
-        ['drone_sim_rafa_0'],
+        [
+            'drone0',
+            'drone1'
+        ],
         verbose=True,
-        sim_mode=True,
-        use_sim_time=True)
+        sim_mode=False,
+        use_sim_time=False)

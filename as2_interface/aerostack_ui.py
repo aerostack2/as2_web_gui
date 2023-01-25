@@ -28,8 +28,9 @@ class AerostackUI():
 
         self.drone_interface = {}
         for uav_id in self.uav_id_list:
-            # print(f"UAV {uav_id} initialize")
             drone_node = UavInterface(uav_id, verbose, sim_mode, use_sim_time)
+            origin = [40.158194, -3.380795, 100]
+            drone_node.gps.set_origin(origin)
             self.drone_interface[uav_id] = drone_node
 
         time.sleep(1)
@@ -60,11 +61,16 @@ class AerostackUI():
                 msg['payload']
             )
 
+            print(f"Mission {str(confirm_msg['id'])} confirmed")
+
             mission_planner_msg['status'] = confirm_msg['status']
             self.client.info_messages.send_mission_info(mission_planner_msg)
+        else:
+            print(f"Mission {str(confirm_msg['id'])} reject")
 
     def start_mission_callback(self, msg: dict, args):
         """ Start mission callback """
+        print(f"Starting mission {str(msg['payload']['id'])}")
 
         mission_id = str(msg['payload']['id'])
         mission_list = self.mission_manager.mission_list[mission_id]
@@ -89,9 +95,9 @@ class AerostackUI():
         """ Run """
 
         print("Running info publisher")
-        odom = {}
-        for uav in self.uav_id_list:
-            odom[uav] = []
+        # odom = {}
+        # for uav in self.uav_id_list:
+        #     odom[uav] = []
 
         while self.client.connection:
             for idx, uav in enumerate(self.uav_id_list):
@@ -100,20 +106,14 @@ class AerostackUI():
 
                 send_info = drone_interface_i.get_info()
 
-                pose_fail1 = {'lat': 0.0, 'lng': 0.0}
-                pose_fail2 = {'lat': float('NaN'), 'lng': float('NaN')}
+                if -90.0 <= send_info['pose']['lat'] <= 90.0 and \
+                   -180.0 <= send_info['pose']['lng'] <= 180.0:
+                    # if len(odom[uav]) > 50:
+                    #     odom[uav].pop(0)
 
-                if send_info['pose']['lat'] != pose_fail1['lat'] or \
-                   send_info['pose']['lng'] != pose_fail1['lng'] or \
-                   send_info['pose']['lat'] != pose_fail2['lat'] or \
-                   send_info['pose']['lng'] != pose_fail2['lng']:
-
-                    if len(odom[uav]) > 50:
-                        odom[uav].pop(0)
-
-                    odom[uav].append(
-                        [send_info['pose']['lat'], send_info['pose']['lng']])
-                    send_info['odom'] = odom[uav]
+                    # odom[uav].append(
+                    #     [send_info['pose']['lat'], send_info['pose']['lng']])
+                    # send_info['odom'] = odom[uav]
                     self.client.info_messages.send_uav_info(send_info)
                     # print(f"UAV {uav} info sent:")
                     # print(send_info)
