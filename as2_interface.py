@@ -2,17 +2,16 @@
 as2_interface.py
 """
 
-import rclpy
 from as2_interface.aerostack_ui import AerostackUI
 
 if __name__ == '__main__':
-    rclpy.init()
-
-    aerostackUI = AerostackUI(
+    aerostack_ui = AerostackUI(
         [
-            'drone0',
-            'drone1'
+            'drone_sim_rafa_0',
+            'drone_sim_rafa_1'
         ],
-        verbose=True,
+        log_level=4,
         sim_mode=False,
         use_sim_time=False)
+
+    # aerostack_ui.shutdown()

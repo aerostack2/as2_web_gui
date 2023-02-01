@@ -37,16 +37,16 @@
             ["",     "Yaw mode",        ["state", "yaw_mode"]],
             ["",     "Control mode",    ["state", "control_mode"]],
             ["",     "Reference frame", ["state", "reference_frame"]],
-            ["Pose", "lat",             ["pose", "lat"]   ],
-            ["",     "lng",             ["pose", "lng"]   ],
-            ["",      "height",         ["pose", "height"]],
-            ["",      "yaw",            ["pose", "yaw"]   ]
+            ["Pose", "lat",             ["pose", [0]]],
+            ["",     "lng",             ["pose", [1]]],
+            ["",      "height",         ["pose", [2]]],
+            ["",      "yaw",            ["pose", [3]]]
         ],
         "roundTable": [
-            [["pose", "lat"],   6],
-            [["pose", "lng"],   6],
-            [["pose", "height"],2],
-            [["pose", "yaw"],   2]
+            [["pose", [0]], 6],
+            [["pose", [1]], 6],
+            [["pose", [2]], 2],
+            [["pose", [3]], 2]
         ]
     }
 }

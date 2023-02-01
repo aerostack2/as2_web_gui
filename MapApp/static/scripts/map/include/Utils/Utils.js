@@ -512,7 +512,7 @@ class Utils {
 
                     for (let k = 0; k < roundTable.length; k++) {
                         let roundRow = roundTable[k];
-                        if (roundRow[0] == element) {
+                        if (roundRow[0].toString() == element.toString()) {
                             infoElement = Utils.round(infoElement, roundRow[1]);
                         }
                     }

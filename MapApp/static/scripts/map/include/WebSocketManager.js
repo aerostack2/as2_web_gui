@@ -187,6 +187,7 @@ class WebSocketManager {
         this.sendRequest(
             'missionStart',
             {
+                'status': 'request',
                 'id': missionId,
             },
             'manager'
@@ -194,14 +195,31 @@ class WebSocketManager {
     }
 
     /**
-     * Send a request of Stop Mission to the Web Socket server.
+     * Send a request of Pause Mission to the Web Socket server.
      * @param {string} missionId - Id of the mission to start.
      * @return {void}
      * @access public
      */
-    sendStopMission(missionId) {
+    sendPauseMission(missionId) {
         this.sendRequest(
-            'missionStop',
+            'missionPause',
+            {
+                'status': 'request',
+                'id': missionId,
+            },
+            'manager'
+        );
+    }
+
+    /**
+     * Send a request of Resume Mission to the Web Socket server.
+     * @param {string} missionId - Id of the mission to start.
+     * @return {void}
+     * @access public
+     */
+    sendResumeMission(missionId) {
+        this.sendRequest(
+            'missionResume',
             {
                 'id': missionId,
             },

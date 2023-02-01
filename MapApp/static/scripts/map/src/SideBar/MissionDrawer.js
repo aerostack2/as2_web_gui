@@ -103,16 +103,16 @@ class MissionDrawer {
 
             switch (layer.name) {
                 case 'TakeOffPoint':
-                    this._takeOffPoint.codeDraw([layer.values['lat'], layer.values['lng']], {'missionId': missionId}, undefined, desiredColor);
+                    this._takeOffPoint.codeDraw(layer.values, {'missionId': missionId}, undefined, desiredColor);
                     break;
                 case 'Path':
                     this._path.codeDraw(layer.values, {'missionId': missionId}, {'color': desiredColor[0]});
                     break;
                 case 'LandPoint':
-                    this._landPoint.codeDraw([layer.values.lat, layer.values.lng], {'missionId': missionId}, undefined, desiredColor);
+                    this._landPoint.codeDraw(layer.values, {'missionId': missionId}, undefined, desiredColor);
                     break;
                 case 'WayPoint':
-                    this._wayPoint.codeDraw([layer.values.lat, layer.values.lng], {'missionId': missionId}, undefined, desiredColor);
+                    this._wayPoint.codeDraw(layer.values, {'missionId': missionId}, undefined, desiredColor);
                     break;
                 case 'Area':
                     this._area.codeDraw(layer.values[0], {'missionId': missionId}, {'opacity': 0.3, 'color': M.MISSION_MANAGER.getColors(missionId)[1]});

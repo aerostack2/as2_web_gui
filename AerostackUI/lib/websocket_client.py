@@ -1,7 +1,7 @@
 """ Websocket client to communicate with server """
 import json
 import websocket
-from .websocket_logger import WebSocketClientLogger
+from AerostackUI.aerostack_ui_logger import AerostackUILogger
 
 
 class WebSocketClient:
@@ -9,7 +9,7 @@ class WebSocketClient:
     Websocket client interface to communicate with server
     """
 
-    def __init__(self, host: str, logger: WebSocketClientLogger, on_open: object = None,
+    def __init__(self, host: str, logger: AerostackUILogger, on_open: object = None,
                  on_message: object = None, on_error: object = None, on_close: object = None):
         self.host = host
         self.logger = logger
@@ -42,5 +42,5 @@ class WebSocketClient:
                 msg['to'] = cliend_id_destination
 
         message = json.dumps({'message': msg})
-        self.logger("send", f"Sending message: {message}")
+        self.logger.debug("WebSocketClient", "send", f"Sending message: {message}")
         self.websocket.send('%s' % message)

@@ -410,8 +410,7 @@ class DrawManager {
     _updateHeightRangeCallback(myargs, args) {
         // TODO: Enable height range
         // myargs[0].drawManager.options.height = [args.heightMin, args.heightMax];
-        myargs[0].drawManager.options.height[0] = args.height;
-        myargs[0].drawManager.options.height[1] = args.height;
+        myargs[0].drawManager.options.height = args.height;
 
         // TODO: Fix bug, when the height is changed, the height of mission planner is also changed
         let height_input = document.getElementById('sideBar-left-missionPlanner-content-heightInput');

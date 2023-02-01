@@ -7,7 +7,7 @@ from .lib.info_messages import InfoMessages
 from .lib.request_messages import RequestMessages
 from .lib.websocket_client import WebSocketClient
 from .lib.websocket_data import WebSocketClientData
-from .lib.websocket_logger import WebSocketClientLogger
+from .aerostack_ui_logger import AerostackUILogger
 
 
 class WebSocketClientInterface:
@@ -15,12 +15,12 @@ class WebSocketClientInterface:
     Manager websocket client
     """
 
-    def __init__(self, host, verbose: bool = True):
+    def __init__(self, host, logger: AerostackUILogger):
         self.host = host
 
         self.data = WebSocketClientData()
 
-        self.logger = WebSocketClientLogger(verbose)
+        self.logger = logger
         self.websocket_client = WebSocketClient(
             self.host, self.logger, self.on_open,
             self.on_message, self.on_error, self.on_close)
@@ -43,7 +43,7 @@ class WebSocketClientInterface:
         """
         Keep websocket open
         """
-        self.logger("run", "Running")
+        self.logger.info("WebSocketClientInterface", "run", "Running")
         while self.connection:
             self.websocket_client.websocket.run_forever()
         self.thread.join()
@@ -52,24 +52,23 @@ class WebSocketClientInterface:
         """
         Close websocket connection
         """
-        self.logger("close", "Closing")
+        self.logger.info("WebSocketClientInterface", "close", "Closing")
         self.websocket_client.websocket.close()
 
     def on_error(self, websocket_input: websocket, error):
         """
         This function is called when websocket has an error
         """
-        self.logger("on_error", f"Error: {error}")
-        print("ERROR: ", error)
+        self.logger.error("WebSocketClientInterface", "on_error", f"Error: {error}")
         self.websocket_client.websocket.close()
 
     def on_close(self, websocket_input: websocket, close_status_code, close_msg: str):
         """
         This function is called when websocket is closed
         """
-        self.logger("on_close", "Connection closed")
-        self.logger("on_close", f"Status: {close_status_code}")
-        self.logger("on_close", f"Close message: {close_msg}")
+        self.logger.info("WebSocketClientInterface", "on_close", "Connection closed")
+        self.logger.info("WebSocketClientInterface", "on_close", f"Status: {close_status_code}")
+        self.logger.info("WebSocketClientInterface", "on_close", f"Close message: {close_msg}")
         self.connection = False
 
     def on_open(self, websocket_input: websocket):
@@ -77,21 +76,21 @@ class WebSocketClientInterface:
         This function is called when websocket is open
         """
         self.connection = True
-        self.logger("on_open", "Connected")
+        self.logger.info("WebSocketClientInterface", "on_open", "Connected")
         self.basic_messages.handshake(self.data.rol)
 
     def on_message(self, websocket_input: websocket, message: dict):
         """
         This function is called when websocket receives a message and manage it
         """
-        self.logger("on_message", f"Message recived: {message}")
+        self.logger.debug("WebSocketClientInterface", "on_message", f"Message recived: {message}")
         msg = json.loads(message)['message']
 
         # Communication with server
         if msg['type'] == 'basic' and msg['status'] == 'response':
             self.basic_messages.message_proccess(msg)
         else:
-            self.logger("on_message", f"Unknown message: {msg}")
+            self.logger.debug("WebSocketClientInterface","on_message", f"Unknown message: {msg}")
             self.on_message_callback(msg)
 
     def on_message_callback(self, msg: dict):

@@ -40,7 +40,9 @@ class MissionPlanner {
          * @type {array}
          * @access private
          */
-        this._selectedHeight = [_configFile.defaultHeight, _configFile.defaultHeight];
+        this._selectedHeight = _configFile.defaultHeight;
+        // TODO: Enable height range
+        // this._selectedHeight = [_configFile.defaultHeight, _configFile.defaultHeight];
 
         /**
          * Selected speed.
@@ -103,7 +105,7 @@ class MissionPlanner {
          * @type {WayPoint}
          * @access private
          */
-        this._wayPoint = new WayPoint(status, undefined, Utils.deepCopyMergeDict(layerOptions, { 'continueDrawing': true }));
+        this._wayPoint = new WayPoint(status, undefined, Utils.deepCopyMergeDict(layerOptions, { 'continueDraw': true }));
 
         /**
          * Path manager.
@@ -425,9 +427,11 @@ class MissionPlanner {
             };
 
             if (layer._latlng) {
-                saveInfo[i]['values'] = layer._latlng;
+                saveInfo[i]['values'] = [layer._latlng.lat, layer._latlng.lng];
             } else if (layer._latlngs) {
-                saveInfo[i]['values'] = layer._latlngs;
+                for (let j = 0; j < layer._latlngs.length; j++) {
+                    saveInfo[i]['values'].push([layer._latlngs[j].lat, layer._latlngs[j].lng]);
+                }
             }
 
         }
@@ -534,8 +538,8 @@ class MissionPlanner {
             let distance = Utils.distance(
                 takeOffPosition.lat,
                 takeOffPosition.lng,
-                pose.lat,
-                pose.lng
+                pose[0],
+                pose[1]
             );
 
             if (distance < minDistance) {
@@ -617,8 +621,6 @@ class MissionPlanner {
         }
     }
 
-
-
     missionInterpreter() {
 
         let selectedUavList = [];
@@ -679,16 +681,21 @@ class MissionPlanner {
             // Layer coordinates values
             switch (drawManagerInfo.type) {
                 case 'Marker':
-                    missionLayer['values'] = layer._latlng;
+                    missionLayer['values'] = [layer._latlng.lat, layer._latlng.lng];
                     break;
                 case 'Circle':
                 case 'CircleMarker':
-                    missionLayer['values'] = [layer._latlng, layer._mRadius];
+                    missionLayer['values'] = [layer._latlng.lat, layer._latlng.lng, layer._mRadius];
                     break;
                 case 'Polyline':
                 case 'Polygon':
                 case 'Rectangle':
-                    missionLayer['values'] = layer._latlngs;
+                    missionLayer['values'] = [];
+                    for (let j = 0; j < layer._latlngs.length; j++) {
+                        let lat = layer._latlngs[j].lat;
+                        let lng = layer._latlngs[j].lng;
+                        missionLayer['values'].push([lat, lng]);
+                    }
                     break;
                 default:
                     console.log('Unknown drawManager layer type');

@@ -343,7 +343,7 @@ class MissionManager extends ManagerPrototype {
      * @param {string} missionSet - Name of the header of the info message that will be received from server when a mission is set/reset.
      * @param {string} missionGet - Name of the header of the request message that will be received from server when the mission list is requested.
      */
-    constructor(colors, missionConfirm, missionAdd, missionSet, missionGet) {
+    constructor(colors, missionConfirm, missionPause, missionResume, missionAdd, missionSet, missionGet) {
         super(colors, missionAdd, missionSet, missionGet);
 
         /**
@@ -353,8 +353,28 @@ class MissionManager extends ManagerPrototype {
          */
         this._missionConfirmCallbacks = [];
 
+        /**
+         * List of callbacks when a mission is paused.
+         * @type {array}
+         * @private
+         */
+        this._missionPauseCallbacks = [];
+
+        /**
+         * List of callbacks when a mission is resumed.
+         * @type {array}
+         * @private
+         */
+        this._missionResumeCallbacks = [];
+
         // Callback for confirm mission information from server
         M.WS.addCallback('request', missionConfirm, this._onMissionConfirm.bind(this));
+
+        // Callback for pause mission information from server
+        M.WS.addCallback('request', missionPause, this._onMissionPause.bind(this));
+
+        // Callback for resume mission information from server
+        M.WS.addCallback('request', missionResume, this._onMissionResume.bind(this));
     }
 
     // #region Public methods
@@ -368,6 +388,28 @@ class MissionManager extends ManagerPrototype {
      */
     addMissionConfirmCallback(callback, ...args) {
         this._missionConfirmCallbacks.push([callback, args]);
+    }
+
+    /**
+     * Add a function callback when a mission is paused by the server.
+     * @param {function} callback - Function to be called when the mission is paused.
+     * @param  {...any} args - Arguments to be passed to the callback.
+     * @return {void}
+     * @access public
+     */
+    addMissionPauseCallback(callback, ...args) {
+        this._missionPauseCallbacks.push([callback, args]);
+    }
+
+    /**
+     * Add a function callback when a mission is resumed by the server.
+     * @param {function} callback - Function to be called when the mission is resumed.
+     * @param  {...any} args - Arguments to be passed to the callback.
+     * @return {void}
+     * @access public
+     */
+    addMissionResumeCallback(callback, ...args) {
+        this._missionResumeCallbacks.push([callback, args]);
     }
 
     // #endregion
@@ -389,6 +431,33 @@ class MissionManager extends ManagerPrototype {
         }
     }
 
+    /**
+     * Callback to request message with header missionPause, that get the response of the mission pause.
+     * @param {dict} payload - payload of the request message
+     * @return {void}
+     * @access private
+     */
+    _onMissionPause(payload) {
+        if (payload.status == 'paused') {
+            Utils.callCallbacks(this._missionPauseCallbacks, payload);
+        } else if (payload.status == 'rejected') {
+            ConsoleSideBar.addWarning('Mission pause rejected: ' + payload);
+        }
+    }
+
+    /**
+     * Callback to request message with header missionResume, that get the response of the mission resume.
+     * @param {dict} payload - payload of the request message
+     * @return {void}
+     * @access private
+     */
+    _onMissionResume(payload) {
+        if (payload.status == 'resumed') {
+            Utils.callCallbacks(this._missionResumeCallbacks, payload);
+        } else if (payload.status == 'rejected') {
+            ConsoleSideBar.addWarning('Mission resume rejected: ' + payload);
+        }
+    }
     // #endregion
 }
 
@@ -496,7 +565,8 @@ class MapManager {
      */
     initialize() {
         this.UAV_MANAGER = new UavManager(config.UAV.colors, 'uavInfo', 'uavInfoSet', 'getUavList');
-        this.MISSION_MANAGER = new MissionManager(config.Mission.colors, 'missionConfirm', 'missionInfo', 'missionInfoSet', 'getMissionList');
+        this.MISSION_MANAGER = new MissionManager(config.Mission.colors, 'missionConfirm', 'missionPause', 'missionResume',
+            'missionInfo', 'missionInfoSet', 'getMissionList');
 
         this.DRAW_LAYERS = new DrawLayers('draw');
         this.MISSION_LAYERS = new DrawLayers('confirmed');

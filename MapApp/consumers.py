@@ -65,6 +65,8 @@ class MissionManager(InfoManager):
     async def initialize(self):
         await super().initialize()
         await serverManager.addCallback('request', 'missionConfirm', self.on_confirm_mission)
+        await serverManager.addCallback('request', 'missionPause', self.on_pause_resume_mission)
+        await serverManager.addCallback('request', 'missionResume', self.on_pause_resume_mission)
         await serverManager.addCallback('request', 'missionStart', self.on_start_mission)
         await serverManager.addCallback('request', 'missionStop', self.on_mission_info)
         await serverManager.addCallback('request', 'missionEnd', self.on_mission_info)
@@ -79,7 +81,17 @@ class MissionManager(InfoManager):
             
         elif msg['payload']['status'] == 'confirmed' or msg['payload']['status'] == 'rejected':
             await serverManager.sendMessage(1, msg['to'], msg)
-            
+    
+    async def on_pause_resume_mission(self, id, rol, msg):
+        if msg['payload']['status'] == 'request':
+            await serverManager.sendMessage(msg['from'], 1, msg)
+
+        elif msg['payload']['status'] == 'rejected':
+            await serverManager.sendMessage(1, msg['to'], msg)
+
+        elif msg['payload']['status'] == 'paused' or msg['payload']['status'] == 'resumed':
+            await serverManager.sendMessage(1, 'broadcast', msg)
+
     async def on_start_mission(self, id, rol, msg):
         await serverManager.sendMessage(msg['from'], 1, msg)
 

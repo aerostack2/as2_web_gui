@@ -1,14 +1,14 @@
 """ Request messages module """
 from .websocket_client import WebSocketClient
 from .websocket_data import WebSocketClientData
-from .websocket_logger import WebSocketClientLogger
+from AerostackUI.aerostack_ui_logger import AerostackUILogger
 
 
 class RequestMessages:
     """ Class for request messages """
 
     def __init__(self, websocket: WebSocketClient, data: WebSocketClientData,
-                 logger: WebSocketClientLogger):
+                 logger: AerostackUILogger):
         self.websocket = websocket
         self.data = data
         self.logger = logger

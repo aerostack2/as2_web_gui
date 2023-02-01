@@ -1,14 +1,14 @@
 """ Basic messages module """
 from .websocket_client import WebSocketClient
 from .websocket_data import WebSocketClientData
-from .websocket_logger import WebSocketClientLogger
+from AerostackUI.aerostack_ui_logger import AerostackUILogger
 
 
 class BasicMessages:
     """ Class for basic messages """
 
     def __init__(self, websocket: WebSocketClient, data: WebSocketClientData,
-                 logger: WebSocketClientLogger):
+                 logger: AerostackUILogger):
         self.websocket = websocket
         self.data = data
         self.logger = logger
@@ -67,23 +67,23 @@ class BasicMessages:
         """
         if msg['header'] == 'handshake':
             if msg['payload']['response'] == 'success':
-                self.logger(
+                self.logger.debug("BasicMessages",
                     "on_message", f"Logged in with id {msg['payload']['id']}")
                 self.data.client_id = msg['payload']['id']
             else:
-                self.logger(
+                self.logger.error("BasicMessages",
                     "on_message", f"Login failed with error {msg['response']['response']}")
                 self.websocket.close()
 
         elif msg['header'] == 'getId':
             self.data.client_id = msg['payload']['id']
-            self.logger(
+            self.logger.debug("BasicMessages",
                 "on_message", f"Received id {self.data.client_id}")
 
         elif msg['header'] == 'ping':
-            self.logger(
+            self.logger.debug("BasicMessages",
                 "on_message", f"Ping: {msg['payload']['message']}")
 
         elif msg['header'] == 'getClientList':
-            self.logger(
+            self.logger.debug("BasicMessages",
                 "on_message", f"Client list: {msg['payload']['client_list']}")
