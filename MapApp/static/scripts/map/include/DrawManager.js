@@ -119,7 +119,8 @@ class DrawManager {
      */
     userDraw(options = {}, layerOptions = {}) {
 
-        let drawOption = this._mergeOptions(options, layerOptions);
+        let drawOption_aux = this._mergeOptions(options, layerOptions);
+        let drawOption = Object.assign({}, drawOption_aux, {'continueDrawing': false});
 
         switch (this.type) {
             case 'Marker':

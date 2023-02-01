@@ -146,12 +146,12 @@ class DrawLayers extends SmartListCallbacks {
 
         let newDict = Utils.deepCopy(super.getDict());
 
-        for (let i=super.getList().length; i>=0; i--) {
+        for (let i = super.getList().length; i >= 0; i--) {
             let id = super.getList()[i];
             super.removeById(id);
         }
 
-        for (let i=0; i<newLayerList.length; i++) {
+        for (let i = 0; i < newLayerList.length; i++) {
             let id = newLayerList[i];
             super.addObject(id, newDict[id]);
         }
@@ -232,6 +232,13 @@ class DrawLayers extends SmartListCallbacks {
             e.layer.on('move', (e2) => {
                 callback2(e2);
             });
+
+            // TODO: Fix this, when the layer is created with option continueDraw = true, 
+            // after user draw it, it should enable the layer draw again. Now it is not working.
+            // if (Utils.hasMember(value, ['drawManager', 'instance', 'options', 'continueDraw'])) {
+            //     console.log("Continue draw")
+            //     value.drawManager.instance.userDraw(value.drawManager.options);
+            // }
         }
     }
 

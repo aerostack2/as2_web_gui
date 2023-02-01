@@ -76,13 +76,11 @@ class MissionPlanner {
         let borderColor = config.Layers.defaultBorderColor;
 
         let layerOptions = {
-            'continueDrawing': false,
             'fillColor': fillColor,
             'borderColor': borderColor,
         }
 
         let layerOptions2 = {
-            'continueDrawing': false,
             'color': fillColor,
         }
 
@@ -229,20 +227,44 @@ class MissionPlanner {
 
         Utils.addFileCallback(`${this.htmlId}-missionFile`, this._loadMissionCallback.bind(this));
 
-        // add listener to reset draw when press ESC key
-        document.addEventListener('keydown', function (e) {
-            switch (e.key) {
-                case 'Escape':
-                    //console.log('ESC pressed');
-                    DrawController.drawMouse();
-                    break;
-                default:
-                    break;
-            }
-        });
+        // Add event listener to keyboard events to draw on map
+        document.addEventListener('keydown', this.keyDownCallback.bind(this));
     }
 
     // #region Callbacks
+
+    /** 
+     * Callback for keyboard events.
+     * @param {object} e - Keyboard event.
+     * @returns {void}
+     * @access private
+     */
+    keyDownCallback(e) {
+        console.log("key pressed");
+        console.log(e.key)
+        switch (e.key) {
+            case 'Escape':
+                DrawController.drawMouse();
+                break;
+            case 't':
+                this._takeOffPoint.userDraw({ 'height': this._selectedHeight, 'speed': this._selectedSpeed });
+                break;
+            case 'l':
+                this._landPoint.userDraw({ 'height': this._selectedHeight, 'speed': this._selectedSpeed });
+                break;
+            case 'w':
+                this._wayPoint.userDraw({ 'height': this._selectedHeight, 'speed': this._selectedSpeed });
+                break;
+            case 'p':
+                this._path.userDraw({ 'height': this._selectedHeight, 'speed': this._selectedSpeed });
+                break;
+            case 'a':
+                this._area.userDraw({ 'height': this._selectedHeight, 'speed': this._selectedSpeed });
+                break;
+            default:
+                break;
+        }
+    };
 
     /**
      * Callbacks for height and speed inputs. Set the value to the corresponding variable.
