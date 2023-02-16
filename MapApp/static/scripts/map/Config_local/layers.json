@@ -32,7 +32,9 @@
                 "algorithm",
                 "orientation",
                 "streetSpacing",
-                "wpSpace"
+                "wpSpace",
+                "verticalOverlap",
+                "horizontalOverlap"
             ]
         }
     }

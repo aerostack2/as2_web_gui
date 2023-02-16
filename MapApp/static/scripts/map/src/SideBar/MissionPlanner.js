@@ -60,8 +60,6 @@ class MissionPlanner {
         this._addPlannerHTML();
     }
 
-
-
     // #region Planner
 
     /**
@@ -140,7 +138,7 @@ class MissionPlanner {
 
 
         // Heigh input
-        let heightInput = HTMLUtils.addDict('input', `${this.htmlId}-heightInput`, { 'class': 'form-control', 'required': 'required', }, 'text', `${this._selectedHeight[1]}`);
+        let heightInput = HTMLUtils.addDict('input', `${this.htmlId}-heightInput`, { 'class': 'form-control', 'required': 'required', }, 'text', `${this._selectedHeight}`);
         let heightBtn = HTMLUtils.addDict('button', `${this.htmlId}-heightBtn`, { 'class': 'btn btn-primary' }, 'Set Height (m)');
         let heightRow = HTMLUtils.addDict('splitDivs', 'none', { 'class': 'row my-1 mx-1' }, [heightInput, heightBtn], { 'class': 'col-md-6' });
         mPlannerList.push(heightRow);
@@ -276,7 +274,9 @@ class MissionPlanner {
     inputCallback(myargs, input) {
         DrawController.drawMouse();
         if (myargs[0] == 'height') {
-            this._selectedHeight = [input.value, input.value];
+            // TODO: Enable height range
+            // this._selectedHeight = [input.value, input.value];
+            this._selectedHeight = input.value;
         } else if (myargs[0] == 'speed') {
             this._selectedSpeed = input.value;
         }
@@ -347,7 +347,6 @@ class MissionPlanner {
         mConfirmList.push(HTMLUtils.initDropDown(`${this.htmlId}-MissionList`, missionListTotal, 'New Mission'));
 
         // UAV picker
-        // let list = [['none', false], ['auto', true]];
         let list = [['none', false]];
         let uavPickerList = M.getUavPickerDict('checkbox', `${this.htmlId}-UAVPicker`, list, this._clickUavListCallback.bind(this));
 
@@ -447,15 +446,26 @@ class MissionPlanner {
                 'options': drawManager.options,
                 'values': []
             };
-
+            let values = [];
             if (layer._latlng) {
-                saveInfo[i]['values'] = [layer._latlng.lat, layer._latlng.lng];
+                values = [layer._latlng.lat, layer._latlng.lng];
+                if (M.USE_LOCAL_COORDINATES) {
+                    values = M.UTM.getLocalUTM(values);
+                }
             } else if (layer._latlngs) {
-                for (let j = 0; j < layer._latlngs.length; j++) {
-                    saveInfo[i]['values'].push([layer._latlngs[j].lat, layer._latlngs[j].lng]);
+                let layer_values = layer._latlngs;
+                if (layer_values[0].length >= 3) {
+                    layer_values = layer._latlngs[0];
+                }
+                for (let j = 0; j < layer_values.length; j++) {
+                    let coord = [layer_values[j].lat, layer_values[j].lng];
+                    if (M.USE_LOCAL_COORDINATES) {
+                        coord = M.UTM.getLocalUTM(coord);
+                    }
+                    values.push(coord);
                 }
             }
-
+            saveInfo[i]['values'] = values;
         }
 
         if (Object.keys(saveInfo).length > 0) {
@@ -555,14 +565,14 @@ class MissionPlanner {
         }
 
         let takeOffPosition = layerInfo.layer.getLatLng();
+        takeOffPosition = [takeOffPosition.lat, takeOffPosition.lng];
+        if (M.USE_LOCAL_COORDINATES) {
+            takeOffPosition = M.UTM.getLocalUTM(takeOffPosition);
+        }
+
         for (let j = 0; j < selectedUavListTakeOff.length; j++) {
             let pose = M.UAV_MANAGER.getDictById(selectedUavListTakeOff[j]).pose;
-            let distance = Utils.distance(
-                takeOffPosition.lat,
-                takeOffPosition.lng,
-                pose[0],
-                pose[1]
-            );
+            let distance = Utils.distance(takeOffPosition, [pose[0], pose[1]]);
 
             if (distance < minDistance) {
 
@@ -694,36 +704,55 @@ class MissionPlanner {
                     this.missionInterpreterArea(layerInfo, missionLayer, selectedUavList, validation, info);
                     break;
                 default:
-                    console.log('Unknown drawManager layer name');
-                    console.log(drawManagerInfo.name);
+                    info.push(`Unknown drawManager layer name: ${drawManagerInfo.name}`);
+                    validation = false;
                     break;
             }
 
-
             // Layer coordinates values
+            let coordinates = [];
             switch (drawManagerInfo.type) {
                 case 'Marker':
-                    missionLayer['values'] = [layer._latlng.lat, layer._latlng.lng];
+                    if (M.USE_LOCAL_COORDINATES) {
+                        coordinates = M.UTM.getLocalUTM([layer._latlng.lat, layer._latlng.lng]);
+                    } else {
+                        coordinates = [layer._latlng.lat, layer._latlng.lng];
+                    }
                     break;
                 case 'Circle':
                 case 'CircleMarker':
-                    missionLayer['values'] = [layer._latlng.lat, layer._latlng.lng, layer._mRadius];
+                    if (M.USE_LOCAL_COORDINATES) {
+                        coordinates = M.UTM.getLocalUTM([layer._latlng.lat, layer._latlng.lng]);
+                        coordinates.push(layer._mRadius);
+                    } else {
+                        coordinates = [layer._latlng.lat, layer._latlng.lng, layer._mRadius];
+                    }
                     break;
                 case 'Polyline':
+                    for (let j = 0; j < layer._latlngs.length; j++) {
+                        if (M.USE_LOCAL_COORDINATES) {
+                            coordinates.push(M.UTM.getLocalUTM([layer._latlngs[j].lat, layer._latlngs[j].lng]));
+                        } else {
+                            coordinates.push([layer._latlngs[j].lat, layer._latlngs[j].lng]);
+                        }
+                    }
+                    break;
                 case 'Polygon':
                 case 'Rectangle':
-                    missionLayer['values'] = [];
-                    for (let j = 0; j < layer._latlngs.length; j++) {
-                        let lat = layer._latlngs[j].lat;
-                        let lng = layer._latlngs[j].lng;
-                        missionLayer['values'].push([lat, lng]);
+                    for (let j = 0; j < layer._latlngs[0].length; j++) {
+                        if (M.USE_LOCAL_COORDINATES) {
+                            coordinates.push(M.UTM.getLocalUTM([layer._latlngs[0][j].lat, layer._latlngs[0][j].lng]));
+                        } else {
+                            coordinates.push([layer._latlngs[0][j].lat, layer._latlngs[0][j].lng]);
+                        }
                     }
                     break;
                 default:
-                    console.log('Unknown drawManager layer type');
-                    console.log(drawManagerInfo.type);
+                    info.push(`Unknown drawManager layer type: ${drawManagerInfo.type}`);
+                    validation = false;
                     break;
             }
+            missionLayer['values'] = coordinates;
 
             // Add mission to all mission list. If validation is false, stop mission creation
             mission.push(missionLayer);

@@ -93,15 +93,27 @@ class UavDrawer {
         if (param in this.UAV_LIST.getDictById(uavId)) {
             switch (param) {
                 case 'pose':
-                    this.UAV_LIST.getDictById(uavId)['layerPose'].setLatLng([value[0], value[1]]);
+                    let coord_pose = Utils.deepCopy([value[0], value[1]]);
+                    if (M.USE_LOCAL_COORDINATES) {
+                        coord_pose = M.UTM.getLatLng(coord_pose);
+                    }
+                    this.UAV_LIST.getDictById(uavId)['layerPose'].setLatLng(coord_pose);
                     this.UAV_LIST.getDictById(uavId)['layerPose'].options.rotationAngle = Utils.angleENU2NEU(value[3]);
                     this._updatePopup(uavId);
                     break;
                 case 'odom':
-                    this.UAV_LIST.getDictById(uavId)['layerOdom'].setLatLngs(value);
+                    let coord_odom = Utils.deepCopy(value);
+                    if (M.USE_LOCAL_COORDINATES) {
+                        coord_odom = M.UTM.getLatLngs(coord_odom);
+                    }
+                    this.UAV_LIST.getDictById(uavId)['layerOdom'].setLatLngs(coord_odom);
                     break;
                 case 'desiredPath':
-                    this.UAV_LIST.getDictById(uavId)['layerDesiredPath'].setLatLngs(value);
+                    let coord_path = Utils.deepCopy(value);
+                    if (M.USE_LOCAL_COORDINATES) {
+                        coord_path = M.UTM.getLatLngs(coord_path);
+                    }
+                    this.UAV_LIST.getDictById(uavId)['layerDesiredPath'].setLatLngs(coord_path);
                     break;
                 case 'state':
                     this.UAV_LIST.getDictById(uavId)['layerPose'].options['state'] = value;

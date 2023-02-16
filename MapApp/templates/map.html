@@ -54,6 +54,11 @@
             <script src="{% static 'scripts/map/libs/Cache/pouchdb.js' %}"></script>
             <script src="{% static 'scripts/map/libs/Cache/L.TileLayer.PouchDBCached.js' %}"></script>
 
+            <!-- UTM -->
+            <script src="{% static 'scripts/map/libs/UTM/L.LatLng.UTM.js' %}"></script>
+            {% comment %} <script src="{% static 'scripts/map/libs/utm-latlng/UTMLatLng.js' %}"></script> {% endcomment %}
+            <script src="{% static 'scripts/map/libs/utm-latlng/UTMLatLngFront.js' %}"></script>
+
             <!-- Style -->
             <link rel="stylesheet" type="text/css" href="{% static 'style/map.css' %}"/>
 
@@ -83,6 +88,7 @@
             <script src="{% static 'scripts/map/include/Utils/blocks/FileInput.js' %}"></script>
             
             <script src="{% static 'scripts/map/include/MapManager.js' %}"></script>
+            <script src="{% static 'scripts/map/include/UTM.js' %}"></script>
             <script src="{% static 'scripts/map/include/WebSocketManager.js' %}"></script>
             <script src="{% static 'scripts/map/include/DrawManager.js' %}"></script>
             <script src="{% static 'scripts/map/include/DrawController.js' %}"></script>

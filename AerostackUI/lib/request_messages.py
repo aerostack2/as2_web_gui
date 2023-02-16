@@ -40,11 +40,32 @@ class RequestMessages:
             author (int): id of the client that requested the mission.
             extra (list, optional): list of extra information. Defaults to [].
         """
-        confirm_payload = {
+        payload = {
             'id': new_mission_id,
             'status': status,
             'oldId': old_id,
             'author': author,
             'extra': extra,
         }
-        self.__send('missionConfirm', confirm_payload, author)
+        self.__send('missionConfirm', payload, author)
+
+    def mission_status(self, msg_header: str, mission_id: int, status: str,
+                        author: int, extra: list = []) -> None:
+        """ Send mission status change message to server
+
+        Args:
+            new_mission_id (int): id of the new mission.
+            status (str): status of the mission.
+            oldId (int): id of the mission requested.
+            author (int): id of the client that requested the mission.
+            extra (list, optional): list of extra information. Defaults to [].
+        """
+        payload = {
+            'id': mission_id,
+            'status': status,
+            'author': author,
+            'extra': extra,
+        }
+        print("Mission status msgs: ")
+        print(payload)
+        self.__send(msg_header, payload, author)

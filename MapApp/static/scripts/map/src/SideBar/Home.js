@@ -62,17 +62,17 @@ class Home {
         let homeHtmlList = [];
 
         // Go to
-        let goToLat = HTMLUtils.addDict('input', `${this._htmlId}-goToLat`, { 'class': 'form-control', 'required': 'required', 'value': this._defaultGoTo[0] }, 'number', 'Latitude');
-        let goToLng = HTMLUtils.addDict('input', `${this._htmlId}-goToLng`, { 'class': 'form-control', 'required': 'required', 'value': this._defaultGoTo[1] }, 'number', 'Longitude');
+        let goToX = HTMLUtils.addDict('input', `${this._htmlId}-goToX`, { 'class': 'form-control', 'required': 'required', 'value': this._defaultGoTo[0] }, 'number', M.X_NAME);
+        let goToY = HTMLUtils.addDict('input', `${this._htmlId}-goToY`, { 'class': 'form-control', 'required': 'required', 'value': this._defaultGoTo[1] }, 'number', M.Y_NAME);
         let goToBtn = HTMLUtils.addDict('button', `${this._htmlId}-goToBtn`, { 'class': 'btn btn-primary' }, 'Go to');
-        let goToRow = HTMLUtils.addDict('splitDivs', 'none', { 'class': 'row my-1 mx-1' }, [goToLat, goToLng, goToBtn], { 'class': 'col-md-4' });
+        let goToRow = HTMLUtils.addDict('splitDivs', 'none', { 'class': 'row my-1 mx-1' }, [goToX, goToY, goToBtn], { 'class': 'col-md-4' });
         let gotoCollapse = HTMLUtils.addDict('collapse', `${this._htmlId}-gotoCollapse`, {}, 'Go to', true, [goToRow]);
 
         // Add virtual UAV button
         let virtualUAVName = HTMLUtils.addDict('input', `${this._htmlId}-virtualName`, { 'class': 'form-control', 'required': 'required', 'value': this._defaultUAVname}, 'text', 'Name');
-        let virtualUAVLat = HTMLUtils.addDict('input', `${this._htmlId}-virtualLat`, { 'class': 'form-control', 'required': 'required', 'value': this._defaultUAV[0] }, 'number', 'Latitude');
-        let virtualUAVLon = HTMLUtils.addDict('input', `${this._htmlId}-virtualLng`, { 'class': 'form-control', 'required': 'required', 'value': this._defaultUAV[1] }, 'number', 'Longitude');
-        let virtualUAVPose = HTMLUtils.addDict('splitDivs', 'none', { 'class': 'row my-1 mx-1' }, [virtualUAVLat, virtualUAVLon], { 'class': 'col-md-6' });
+        let virtualUAVX = HTMLUtils.addDict('input', `${this._htmlId}-virtualX`, { 'class': 'form-control', 'required': 'required', 'value': this._defaultUAV[0] }, 'number', M.X_NAME);
+        let virtualUAVY = HTMLUtils.addDict('input', `${this._htmlId}-virtualY`, { 'class': 'form-control', 'required': 'required', 'value': this._defaultUAV[1] }, 'number', M.Y_NAME);
+        let virtualUAVPose = HTMLUtils.addDict('splitDivs', 'none', { 'class': 'row my-1 mx-1' }, [virtualUAVX, virtualUAVY], { 'class': 'col-md-6' });
 
         let virtualBtnContent = HTMLUtils.addDict('button', `${this._htmlId}-virtualBtn`, { 'class': 'btn btn-primary' }, 'Add virtual UAV');
         let virtualBtn = HTMLUtils.addDict('splitDivs', 'none', {}, [virtualBtnContent], { 'class': 'row m-1' });
@@ -96,8 +96,8 @@ class Home {
         // Go To callback
         Utils.addFormCallback(
             `${this._htmlId}-goToBtn`,
-            [`${this._htmlId}-goToLat`, `${this._htmlId}-goToLng`],
-            ['map_center_lat', 'map_center_lng'],
+            [`${this._htmlId}-goToX`, `${this._htmlId}-goToY`],
+            ['map_center_x', 'map_center_y'],
             this._goToCallback.bind(this),
             this._defaultZoom // zoom
         );
@@ -105,8 +105,8 @@ class Home {
         // Add virtual UAV callback
         Utils.addFormCallback(
             `${this._htmlId}-virtualBtn`,
-            [`${this._htmlId}-virtualName`, `${this._htmlId}-virtualLat`, `${this._htmlId}-virtualLng`],
-            ['name', 'lat', 'lng'],
+            [`${this._htmlId}-virtualName`, `${this._htmlId}-virtualX`, `${this._htmlId}-virtualY`],
+            ['name', 'x', 'y'],
             this._addUAVCallback.bind(this)
         );
     }
@@ -114,18 +114,22 @@ class Home {
     /**
      * Go To callback, set the map center to the given coordinates.
      * @param {array} myarg - List with the zoom of the map 
-     * @param {dict} input - Dictionary with the coordinates values with keys 'map_center_lat' and 'map_center_lng'.
+     * @param {dict} input - Dictionary with the coordinates values with keys 'map_center_x' and 'map_center_y'.
      * @returns {void}
      * @access private
      */
      _goToCallback(myarg, input) {
-        M.MAP.flyTo([input['map_center_lat'], input['map_center_lng']], arg[0]);
+        let coordinates = [input['map_center_x'], input['map_center_y']];
+        if (M.USE_LOCAL_COORDINATES) {
+            coordinates = M.UTM.getLatLng(coordinates);
+        }
+        M.MAP.flyTo(coordinates, arg[0]);
     }
 
     /**
      * Add virtual UAV callback, add a virtual UAV to the map.
      * @param {array} myargs - List of arguments passed to the callback.
-     * @param {dict} input - Dictionary with keys 'name', 'lat', 'lng' of the virtual UAV to be added.
+     * @param {dict} input - Dictionary with keys 'name', 'x', 'y' of the virtual UAV to be added.
      * @returns {void}
      * @access private
      */
@@ -134,7 +138,7 @@ class Home {
         let uavInfo = {
             'id': input.name,
             'state': {},
-            'pose': {'lat': parseFloat(input.lat), 'lng': parseFloat(input.lng), 'height': 0, 'yaw': 0}
+            'pose': [parseFloat(input.x), parseFloat(input.y), 0.0, 0.0]
         }
 
         M.WS.sendUavInfo(uavInfo);

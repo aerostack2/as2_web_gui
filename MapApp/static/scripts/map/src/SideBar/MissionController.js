@@ -130,11 +130,11 @@ class MissionController {
         let splitBtn = [];
         splitBtn.push(HTMLUtils.addDict('button', `${this.htmlId}-btn-reload`, {'class': 'btn btn-primary',}, `Reload missions`));
         // splitBtn.push(HTMLUtils.addDict('button', `${this.htmlId}-btn-edit`,   {'class': 'btn btn-primary',}, `Edit mission`));
-        splitBtn.push(HTMLUtils.addDict('button', `${this.htmlId}-btn-save`,   {'class': 'btn btn-primary',}, `Save mission`));
-        splitBtn.push(HTMLUtils.addDict('button', `${this.htmlId}-btn-center`, {'class': 'btn btn-primary',}, `Center mission`));
-        splitBtn.push(HTMLUtils.addDict('button', `${this.htmlId}-btn-start`,  {'class': 'btn btn-primary',}, `Start mission`));
-        splitBtn.push(HTMLUtils.addDict('button', `${this.htmlId}-btn-pause`,   {'class': 'btn btn-danger'},  'Pause mission'));
-        splitBtn.push(HTMLUtils.addDict('button', `${this.htmlId}-btn-end`,    {'class': 'btn btn-success'},  'End mission'));
+        splitBtn.push(HTMLUtils.addDict('button', `${this.htmlId}-btn-save`,   {'class': 'btn btn-primary',}, 'Save mission'));
+        splitBtn.push(HTMLUtils.addDict('button', `${this.htmlId}-btn-center`, {'class': 'btn btn-primary',}, 'Center mission'));
+        splitBtn.push(HTMLUtils.addDict('button', `${this.htmlId}-btn-start`,  {'class': 'btn btn-primary',}, 'Start mission'));
+        splitBtn.push(HTMLUtils.addDict('button', `${this.htmlId}-btn-pause`,  {'class': 'btn btn-success'},  'Pause mission'));
+        splitBtn.push(HTMLUtils.addDict('button', `${this.htmlId}-btn-stop`,   {'class': 'btn btn-danger'},   'Stop mission'));
         missionControllerHtmlList.push(HTMLUtils.addDict('splitDivs', 'none', {}, splitBtn, {'class': 'row m-1'}));
 
         // Global collapse
@@ -155,8 +155,8 @@ class MissionController {
         Utils.addButtonCallback(`${this.htmlId}-btn-save`,   this._saveMissionCallback.bind(this), []);
         Utils.addButtonCallback(`${this.htmlId}-btn-center`, this._centerMissionCallback.bind(this), []);
         Utils.addButtonCallback(`${this.htmlId}-btn-start`,  this._startMissionCallback.bind(this), []);
-        Utils.addButtonCallback(`${this.htmlId}-btn-pause`,   this._pauseResumeMissionCallback.bind(this), []);
-        Utils.addButtonCallback(`${this.htmlId}-btn-end`,    this._endMissionCallback.bind(this), []);
+        Utils.addButtonCallback(`${this.htmlId}-btn-pause`,  this._pauseResumeMissionCallback.bind(this), []);
+        Utils.addButtonCallback(`${this.htmlId}-btn-stop`,   this._stopMissionCallback.bind(this), []);
     }
 
     // #region Buttons callbacks
@@ -184,11 +184,14 @@ class MissionController {
      */
     _updateMissionStatusBtnCallback(myargs, args) {
         this._checkInitalize();
-        console.log(myargs);
-        console.log(args);
-        // document.getElementById(`${this.htmlId}-btn-pause`).innerHTML = 'Resume mission';
+        if (args[0]['status'] == 'paused') {
+            document.getElementById(`${this.htmlId}-btn-pause`).innerHTML = 'Resume mission';
+            console.log(document.getElementById(`${this.htmlId}-btn-pause`).innerHTML)
+        } else if (args[0]['status'] == 'resumed') {
+            document.getElementById(`${this.htmlId}-btn-pause`).innerHTML = 'Pause mission';
+            console.log(document.getElementById(`${this.htmlId}-btn-pause`).innerHTML)
+        }
     }
-
 
     /**
      * Callback for dropdown menu click. Change selected mission.
@@ -234,9 +237,13 @@ class MissionController {
         let missionDict = M.MISSION_MANAGER.getDictById(this._selectedMissionId);
         let center = missionDict.layers[0].values;
 
-        if (center.lat !== undefined && center.lng !== undefined) {
+        if (M.USE_LOCAL_COORDINATES) {
+            center = M.UTM.getLatLngs(center);
+        }
+
+        if (center[0] !== undefined && center[1] !== undefined) {
             M.MAP.flyTo(center, M.MAP.getZoom());
-        } else if (center[0].lat !== undefined && center[0].lng !== undefined) {
+        } else if (center[0][0] !== undefined && center[0][1] !== undefined) {
             M.MAP.flyToBounds(center, M.MAP.getZoom());
         }
     }
@@ -251,22 +258,21 @@ class MissionController {
         console.log('Pause/Resume mission')
         let btn_text = document.getElementById(`${this.htmlId}-btn-pause`);
         if (btn_text.innerHTML === 'Pause mission') {
-            btn_text.innerHTML = 'Resume mission';
             M.WS.sendPauseMission(this._selectedMissionId);
         } else if (btn_text.innerHTML === 'Resume mission') {
-            btn_text.innerHTML = 'Pause mission';
             M.WS.sendResumeMission(this._selectedMissionId);
         }
     }
 
     /**
-     * Callback for end mission button. Send an end mission message to the server.
+     * Callback for stop mission button. Send a stop mission message to the server.
      * @param {Event} e - Button click event.
      * @returns {void}
      * @access private
      */
-    _endMissionCallback(e) {
-        M.WS.sendEndMission(this._selectedMissionId);
+    _stopMissionCallback(e) {
+        console.log('Stop mission callback')
+        M.WS.sendStopMission(this._selectedMissionId);
     }
 
     /**

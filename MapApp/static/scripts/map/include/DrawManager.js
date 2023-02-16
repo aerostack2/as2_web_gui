@@ -86,16 +86,28 @@ class DrawManager {
 
         switch (this.type) {
             case 'Marker':
+                if (M.USE_LOCAL_COORDINATES) {
+                    values = M.UTM.getLatLng(values);
+                }
                 draw = L.marker(values, drawOption);
                 break;
             case 'Polyline':
+                if (M.USE_LOCAL_COORDINATES) {
+                    values = M.UTM.getLocalUTMs(values);
+                }
                 draw = L.polyline(values, drawOption);
                 break;
             case 'Circle':
+                if (M.USE_LOCAL_COORDINATES) {
+                    values = M.UTM.getLatLng(values);
+                }
                 draw = L.circle(values[0], values[1], drawOption);
                 break;
             case 'Polygon':
-                draw = L.polygon(values, drawOption);
+                if (M.USE_LOCAL_COORDINATES) {
+                    values = M.UTM.getLocalUTMs(values);
+                }
+                draw = L.polygon([values], drawOption);
                 break;
             default:
                 alert("Try to draw from code a type: " + drawOption);

@@ -23,10 +23,10 @@
     "Polygon": {
         "Area": {
             "parameters": [
-                ["list", "algorithm", "back_and_force", ["back_and_force", "Spiral"]],
+                ["list", "algorithm", "Back and force", ["Back and force", "Spiral"]],
                 ["number", "orientation", -1.0, "Set orientation (°)"],
-                ["number", "streetSpacing", 0.5, "Set street space (m)"],
-                ["number", "wpSpace", 1.0, "Set waypoint space (m)"]
+                ["number", "streetSpacing", 5.0, "Set street space (m)"],
+                ["number", "wpSpace", 1000.0, "Set waypoint space (m)"]
             ],
             "sendParameters": [
                 "algorithm",

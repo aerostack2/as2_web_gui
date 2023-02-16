@@ -42,5 +42,5 @@ class WebSocketClient:
                 msg['to'] = cliend_id_destination
 
         message = json.dumps({'message': msg})
-        self.logger.debug("WebSocketClient", "send", f"Sending message: {message}")
+        # self.logger.debug("WebSocketClient", "send", f"Sending message: {message}")
         self.websocket.send('%s' % message)

@@ -51,12 +51,14 @@ class Polyline extends DrawManager {
 
         let values = info.layer._latlngs;
         for (let i = 0; i < values.length; i++) {
-            let lat = values[i].lat;
-            let lng = values[i].lng;
+            let coordinates = [values[i].lat, values[i].lng];
+            if (M.USE_LOCAL_COORDINATES) {
+                coordinates = M.UTM.getLocalUTM(coordinates);
+            }
 
-            let latDict = HTMLUtils.addDict('input', `${id}-${i}-lat`, { 'class': 'form-control', 'required': 'required', 'value': Utils.round(lat, 6) }, 'number', 'Latitude');
-            let lngDict = HTMLUtils.addDict('input', `${id}-${i}-lng`, { 'class': 'form-control', 'required': 'required', 'value': Utils.round(lng, 6) }, 'number', 'Longitude');
-            let row = HTMLUtils.addDict('splitDivs', 'none', { 'class': 'row my-1 mx-1' }, [latDict, lngDict], { 'class': 'col-6' });
+            let xDict = HTMLUtils.addDict('input', `${id}-${i}-x`, { 'class': 'form-control', 'required': 'required', 'value': Utils.round(coordinates[0], 6) }, 'number', M.X_NAME);
+            let yDict = HTMLUtils.addDict('input', `${id}-${i}-y`, { 'class': 'form-control', 'required': 'required', 'value': Utils.round(coordinates[1], 6) }, 'number', M.Y_NAME);
+            let row = HTMLUtils.addDict('splitDivs', 'none', { 'class': 'row my-1 mx-1' }, [xDict, yDict], { 'class': 'col-6' });
 
             initialHtml.push(row);
         }
@@ -80,11 +82,11 @@ class Polyline extends DrawManager {
         let nameId = [];
         let values = info.layer._latlngs;
         for (let i = 0; i < values.length; i++) {
-            htmlId.push(`${id}-${i}-lat`);
-            htmlId.push(`${id}-${i}-lng`);
+            htmlId.push(`${id}-${i}-x`);
+            htmlId.push(`${id}-${i}-y`);
 
-            nameId.push(`${i}-lat`);
-            nameId.push(`${i}-lng`);
+            nameId.push(`${i}-x`);
+            nameId.push(`${i}-y`);
         }
         Utils.addFormCallback(`${id}-change`, htmlId, nameId, this._changeCallback.bind(this), info);
     }
@@ -92,13 +94,13 @@ class Polyline extends DrawManager {
     /**
      * Overload the Draw Manager _changeCallback to change the coordinates of the line.
      * @param {array} myargs - List with the info dict, that has the layer and the Draw Manager options.
-     * @param {dict} args - Dict with ['${id}-${i}-lat', '${id}-${i}-lng'] as keys and their values, for each vertex of the polyline.
+     * @param {dict} args - Dict with ['${id}-${i}-x', '${id}-${i}-y'] as keys and their values, for each vertex of the polyline.
      * @returns {void}
      * @access private
      */
     _changeCallback(myargs, args) {
         let layer = myargs[0].layer;
-        
+
         let values = [];
         let len = Math.floor(Object.keys(args).length / 2);
         for (let i = 0; i < len; i++) {
@@ -108,11 +110,15 @@ class Polyline extends DrawManager {
             let value = args[key];
             let keyParse = key.split('-');
             let index1 = parseInt(keyParse[0]);
-            if (keyParse[1] == 'lat') {
+            if (keyParse[1] == 'x') {
                 values[index1][0] = value;
-            } else if (keyParse[1] == 'lng') {
+            } else if (keyParse[1] == 'y') {
                 values[index1][1] = value;
             }
+        }
+        let coordinates = values;
+        if (M.USE_LOCAL_COORDINATES) {
+            coordinates = M.UTM.getLatLngs(values);
         }
         layer.setLatLngs(values);
     }

@@ -2,18 +2,18 @@
 mission_manager.py
 """
 
-import as2_interface.SwarmingLib as swarm
-import as2_interface.Unit_conversion as utm
-import numpy as np
 import copy
+import numpy as np
+from swarm_pylib.swarm_pylib import Swarm
+import as2_interface.Unit_conversion as utm
 from AerostackUI.websocket_interface import WebSocketClientInterface
 from AerostackUI.aerostack_ui_logger import AerostackUILogger
 from .uav_manager import UavManager
-import threading
 
 
 class MissionInterpreter():
     """ Mission Interpreter """
+    use_cartesian_coordinates = False
 
     @staticmethod
     def interpreter(msg: dict, logger: AerostackUILogger) -> dict:
@@ -21,11 +21,13 @@ class MissionInterpreter():
         logger.debug("MissionManager", "interpreter", f"Interpreting mission: {msg}")
 
         if msg['payload']['status'] != 'request':
-            message_info = f"Invalid mission status: {msg['payload']['status']}, only 'request' is allowed for now"
+            message_info = f"Invalid mission status: \
+                {msg['payload']['status']}, only 'request' is allowed for now"
             logger.info("MissionManager", "interpreter", message_info)
 
         if msg['payload']['id'] != 'New Mission':
-            message_info = f"Invalid mission id: {msg['payload']['id']}, only 'New Mission' is allowed for now"
+            message_info = f"Invalid mission id: \
+                {msg['payload']['id']}, only 'New Mission' is allowed for now"
             logger.info("MissionManager", "interpreter", message_info)
             return False, message_info
 
@@ -42,7 +44,7 @@ class MissionInterpreter():
         return True, str("")
 
     @staticmethod
-    def planner(mission_id: str, mission_info: dict) -> dict:
+    def planner(mission_id: str, mission_info: dict, use_cartesian_coordinates: bool = False) -> dict:
         """Convert Aerostack UI mission to ROS mission
 
         Args:
@@ -56,7 +58,6 @@ class MissionInterpreter():
             'uavList': mission_info['uavList'],
             'layers': []
         }
-
         first_uav = mission_info['uavList'][0]
 
         mission = {}
@@ -64,23 +65,22 @@ class MissionInterpreter():
         for uav in mission_info['uavList']:
             mission[str(uav)] = []
             last_position[str(uav)] = [None, None, None]
-
         for layer in mission_info['layers']:
-
             send_layer, mission, new_last_position = MissionInterpreter.layer_interpreter(
-                layer, mission, last_position, first_uav, mission_info)
+                layer, mission, last_position, first_uav, mission_info, use_cartesian_coordinates)
 
             for uav in new_last_position:
                 last_position[uav] = new_last_position[uav]
 
             send_mission['layers'].append(send_layer)
 
-        return send_mission
+        return send_mission, mission
 
     @staticmethod
     def layer_interpreter(layer: dict, mission: dict, last_position: dict,
-                          first_uav: str, mission_info: dict) -> tuple:
+                          first_uav: str, mission_info: dict, use_cartesian_coordinates: bool = False) -> tuple:
         """ Layer interpreter """
+
         name = layer['name']
         uav_list = layer['uavList']
         height = float(layer['height'])
@@ -106,7 +106,7 @@ class MissionInterpreter():
             if name == 'Path':
                 for point in layer['values']:
                     waypoints.append(
-                        [point[0], point[0], height])
+                        [point[0], point[1], height])
                 new_last_position[uav] = waypoints[len(waypoints)-1]
             else:
                 waypoints = [[values[0], values[1], height]]
@@ -139,13 +139,51 @@ class MissionInterpreter():
                 theta = None
 
             next_position = MissionInterpreter.get_next_position(
-                sublist, mission, last_position, first_uav, mission_info)
+                sublist, mission, last_position, first_uav, mission_info, use_cartesian_coordinates)
 
-            area_path = MissionInterpreter.swarm_planning(
-                uav_list_aux, last_position, next_position, height,
-                values[0], str(algorithm), float(
-                    street_spacing), float(wp_space),
-                theta)
+            # area_path = MissionInterpreter.swarm_planning(
+            #     uav_list_aux, last_position, next_position, height,
+            #     values, str(algorithm), float(
+            #         street_spacing), float(wp_space),
+            #     theta)
+
+            uavs_state = {}
+            for uav in uav_list_aux:
+                uavs_state[uav] = {
+                    'initial_position': last_position[uav],
+                    'last_position': next_position[uav]}
+
+            print("Algorithm: ", algorithm)
+            area = []
+            for point in values:
+                area.append([point[0], point[1], height])
+
+            if use_cartesian_coordinates:
+                uavs_path = Swarm.swarm_planning(
+                    uavs_state,
+                    area,
+                    str(algorithm),
+                    'binpat',
+                    float(street_spacing),
+                    float(wp_space),
+                    theta,
+                    filter_path_waypoints=True)
+            else:
+                uavs_path = Swarm.swarm_planning_gps(
+                    uavs_state,
+                    area,
+                    str(algorithm),
+                    'binpat',
+                    float(street_spacing),
+                    float(wp_space),
+                    theta,
+                    filter_path_waypoints=True)
+
+            print("UAVS PATH: ", uavs_path)
+
+            area_path = {}
+            for uav_path, uav in zip(uavs_path, uav_list_aux):
+                area_path[uav] = uav_path
 
             send_layer['uavPath'] = {}
             for uav in uav_list_aux:
@@ -155,7 +193,6 @@ class MissionInterpreter():
                     'speed': speed,
                     'values': area_path[uav]
                 })
-
             send_layer['uavPath'] = area_path
             send_layer['uavList'] = uav_list_aux
 
@@ -166,7 +203,7 @@ class MissionInterpreter():
 
     @staticmethod
     def get_next_position(sublist: list, mission: list, last_position: list,
-                          first_uav: str, mission_info: dict) -> dict:
+                          first_uav: str, mission_info: dict, use_cartesian_coordinates: bool = True) -> dict:
         """ Get next position """
         mission_aux = copy.deepcopy(mission)
         last_position_aux = copy.deepcopy(last_position)
@@ -193,95 +230,113 @@ class MissionInterpreter():
 
         return last_position_list
 
-    @staticmethod
-    def swarm_planning(uav_list: list, initial_position: list,
-                       last_position: list, height: float, values: list,
-                       algorithm: str, street_spacing: float, wp_space: float,
-                       theta: float) -> tuple:
-        """ Swarm planning """
-        zone = None
-        letter = None
+    # @staticmethod
+    # def swarm_planning(uav_list: list, initial_position: list,
+    #                    last_position: list, height: float, values: list,
+    #                    algorithm: str, street_spacing: float, wp_space: float,
+    #                    theta: float, use_cartesian_coordinates: bool = True) -> tuple:
+    #     """ Swarm planning """
+    #     zone = None
+    #     letter = None
+    #     print("Initial position: ", initial_position)
 
-        # Convert to utm
-        initial_position_utm = {}
-        for uav in uav_list:
-            east, north, zone_number, zone_letter = utm.GPS_to_UTM(
-                initial_position[uav][0], initial_position[uav][1])
-            initial_position_utm[uav] = [east, north]
-            zone = zone_number
-            letter = zone_letter
+    #     # Convert to utm
+    #     if not use_cartesian_coordinates:
+    #         initial_position_utm = {}
+    #         for uav in uav_list:
+    #             east, north, zone_number, zone_letter = utm.GPS_to_UTM(
+    #                 initial_position[uav][0], initial_position[uav][1])
+    #             initial_position_utm[uav] = [east, north]
+    #             zone = zone_number
+    #             letter = zone_letter
 
-        last_position_utm = {}
-        for uav in uav_list:
-            east, north, zone_number, zone_letter = utm.GPS_to_UTM(
-                last_position[uav][0], last_position[uav][1])
-            last_position_utm[uav] = [east, north]
+    #         last_position_utm = {}
+    #         for uav in uav_list:
+    #             east, north, zone_number, zone_letter = utm.GPS_to_UTM(
+    #                 last_position[uav][0], last_position[uav][1])
+    #             last_position_utm[uav] = [east, north]
 
-        values_utm = []
-        for value in values:
-            east, north, zone_number, zone_letter = utm.GPS_to_UTM(
-                value[0], value[1])
-            values_utm.append([east, north])
+    #         values_utm = []
+    #         for value in values:
+    #             east, north, zone_number, zone_letter = utm.GPS_to_UTM(
+    #                 value[0], value[1])
+    #             values_utm.append([east, north])
+    #     else:
+    #         initial_position_utm = initial_position
+    #         last_position_utm = last_position
+    #         values_utm = values
 
-        # Swarm planning
-        uav_initial_position = []
-        for uav in initial_position_utm:
-            uav_initial_position.append(
-                [initial_position_utm[uav][0], initial_position_utm[uav][1]])
+    #     # Swarm planning
+    #     uav_initial_position = []
+    #     for uav in initial_position_utm:
+    #         uav_initial_position.append(
+    #             [initial_position_utm[uav][0], initial_position_utm[uav][1]])
 
-        uav_last_position = []
-        for uav in last_position_utm:
-            uav_last_position.append(
-                [last_position_utm[uav][0], last_position_utm[uav][1]])
+    #     uav_last_position = []
+    #     for uav in last_position_utm:
+    #         uav_last_position.append(
+    #             [last_position_utm[uav][0], last_position_utm[uav][1]])
 
-        vel_input = np.full(len(uav_initial_position), 1)
-        vel_sum = sum(vel_input)
-        uav_weight = np.zeros_like(vel_input, dtype=float)
-        for i in range(0, len(vel_input)):
-            uav_weight[i] = float(vel_input[i])/vel_sum
+    #     vel_input = np.full(len(uav_initial_position), 1)
+    #     vel_sum = sum(vel_input)
+    #     uav_weight = np.zeros_like(vel_input, dtype=float)
+    #     for i in range(0, len(vel_input)):
+    #         uav_weight[i] = float(vel_input[i])/vel_sum
 
-        waypoints, wpt_grid = swarm.compute_area(
-            np.array(uav_initial_position),
-            np.array(uav_last_position),
-            uav_weight,
-            np.array(values_utm),
-            altitude=height,
-            street_spacing=street_spacing,
-            wpt_separation=wp_space,
-            path_algorithm=algorithm,
-            distribution_algorithm="binpat",
-            theta=theta
-        )
+    #     waypoints, wpt_grid = swarm.compute_area(
+    #         np.array(uav_initial_position),
+    #         np.array(uav_last_position),
+    #         uav_weight,
+    #         np.array(values_utm),
+    #         altitude=height,
+    #         street_spacing=street_spacing,
+    #         wpt_separation=wp_space,
+    #         path_algorithm=algorithm,
+    #         distribution_algorithm="binpat",
+    #         theta=theta
+    #     )
 
-        # Data format
-        uav_list_wp_utm = {}
-        for index, uav_wp in enumerate(waypoints):
-            uav_wp_aux = []
-            for wp in uav_wp:
-                if not np.isnan(wp[0]) or not np.isnan(wp[1]):
-                    uav_wp_aux.append(wp)
-                else:
-                    break
-            uav_list_wp_utm[uav_list[index]] = uav_wp_aux
+    #     # Data format
+    #     uav_list_wp_utm = {}
+    #     for index, uav_wp in enumerate(waypoints):
+    #         uav_wp_aux = []
+    #         for wp in uav_wp:
+    #             if not np.isnan(wp[0]) or not np.isnan(wp[1]):
+    #                 uav_wp_aux.append(wp)
+    #             else:
+    #                 break
+    #         uav_list_wp_utm[uav_list[index]] = uav_wp_aux
 
-        uav_list_wp_gps = {}
 
-        for uav in uav_list:
+    #     uav_list_wp_gps = {}
+    #     if not use_cartesian_coordinates:
+    #         for uav in uav_list:
+    #             uav_list_wp_gps[uav] = [
+    #                 [initial_position[uav][0], initial_position[uav][1], height]]
 
-            uav_list_wp_gps[uav] = [
-                [initial_position[uav][0], initial_position[uav][1], height]]
+    #             utm_values = uav_list_wp_utm[uav]
+    #             for utm_value in utm_values:
+    #                 gps_value = utm.UTM_to_GPS(
+    #                     utm_value[0], utm_value[1], zone, letter)
+    #                 uav_list_wp_gps[uav].append(
+    #                     [gps_value[0], gps_value[1], height])
 
-            utm_values = uav_list_wp_utm[uav]
-            for utm_value in utm_values:
-                gps_value = utm.UTM_to_GPS(
-                    utm_value[0], utm_value[1], zone, letter)
-                uav_list_wp_gps[uav].append(
-                    [gps_value[0], gps_value[1], height])
+    #             uav_list_wp_gps[uav].append(
+    #                 [last_position[uav][0], last_position[uav][1], height])
+    #     else:
+    #         for uav in uav_list:
+    #             uav_list_wp_gps[uav] = [
+    #                 [initial_position[uav][0], initial_position[uav][1], height]]
 
-            uav_list_wp_gps[uav].append(
-                [last_position[uav][0], last_position[uav][1], height])
+    #             utm_values = uav_list_wp_utm[uav]
+    #             for utm_value in utm_values:
+    #                 uav_list_wp_gps[uav].append(
+    #                     [utm_value[0], utm_value[1], height])
 
-        return uav_list_wp_gps
+    #             uav_list_wp_gps[uav].append(
+    #                 [last_position[uav][0], last_position[uav][1], height])            
+
+    #     return uav_list_wp_gps
 
 
 class MissionManager():
@@ -290,27 +345,36 @@ class MissionManager():
     def __init__(self,
                  client: WebSocketClientInterface,
                  uav_manager: UavManager,
-                 logger: AerostackUILogger):
+                 logger: AerostackUILogger,
+                 use_cartesian_coordinates: bool = False):
 
         self.client = client
         self.uav_manager = uav_manager
         self.logger = logger
+        self.use_cartesian_coordinates = use_cartesian_coordinates
 
         self.mission_id = 0
         self.mission_list = {}
+        self.mission_status = {}
+        self.uav_mission_run_threads = {}
 
         self.client.add_msg_callback(
             'request', 'missionConfirm', self.mission_confirm_callback)
         self.client.add_msg_callback(
-            'request', 'missionPause', self.pause_resume_mission_callback, 'pause')
-        self.client.add_msg_callback(
-            'request', 'missionResume', self.pause_resume_mission_callback, 'resume')
-        self.client.add_msg_callback(
             'request', 'missionStart', self.start_mission_callback)
+        self.client.add_msg_callback(
+            'request', 'missionPause', self.change_mission_status_callback, 'pause')
+        self.client.add_msg_callback(
+            'request', 'missionResume', self.change_mission_status_callback, 'resume')
+        self.client.add_msg_callback(
+            'request', 'missionStop', self.change_mission_status_callback, 'stop')
 
     def mission_confirm_callback(self, msg: dict, args):
         """ Mission confirm callback """
-        self.logger.debug("MissionManager", "mission_confirm_callback", f"Received mission confirm message: {msg}")
+        self.logger.debug(
+            "MissionManager",
+            "mission_confirm_callback",
+            f"Received mission confirm message: {msg}")
 
         confirm, extra = MissionInterpreter.interpreter(msg, self.logger)
         status = 'confirmed' if confirm else 'rejected'
@@ -320,65 +384,137 @@ class MissionManager():
             status,
             msg['payload']['id'],
             msg['from'],
-            extra
-        )
-        self.logger.debug("MissionManager", "mission_confirm_callback", "Sending mission response to client")
+            extra)
+
+        self.logger.debug(
+            "MissionManager",
+            "mission_confirm_callback",
+            "Sending mission response to client")
 
         if confirm:
-            mission_planner_msg = MissionInterpreter.planner(
+            self.mission_status[self.mission_id] = 'confirmed'
+
+            mission_planner_msg, mission = MissionInterpreter.planner(
                 self.mission_id,
-                msg['payload']
+                msg['payload'],
+                self.use_cartesian_coordinates
             )
 
             mission_planner_msg['status'] = status
 
-            self.logger.debug("MissionManager", "mission_confirm_callback", f"Mission confirmed, sending mission info: {mission_planner_msg}")
+            self.logger.debug(
+                "MissionManager",
+                "mission_confirm_callback",
+                f"Mission confirmed, sending mission info: {mission_planner_msg}")
             self.client.info_messages.send_mission_info(mission_planner_msg)
-            self.mission_list[self.mission_id] = mission_planner_msg
+            self.mission_list[self.mission_id] = mission
 
             self.mission_id += 1
 
-    def pause_resume_mission_callback(self, msg: dict, args):
-        """ Pause or resume mission callback """
-        self.logger.debug("MissionManager", "pause_resume_mission_callback", f"Received pause/resume message: {msg}")
-        # mission_id = str(msg['payload']['id'])
-        # mission_list = self.mission.mission_list[mission_id]
-        # # From mission list dict, extract keys
-        # uav_list = mission_list.keys()
-        # print(uav_list)
-        # if args[0] == 'pause':
-        #     print("Pausing mission")
-        #     # TODO: pause uav_list
-        # elif args[0] == 'resume':
-        #     print("Resuming mission")
-        #     # TODO: pause uav_list
-        # else:
-        #     print("Error, invalid argument")
-        #     return
-
     def start_mission_callback(self, msg: dict, args):
         """ Start mission callback """
-        self.logger.debug("MissionManager", "mission_confirm_callback", f"Received starting mission message: {msg}")
-        print("1")
-        print(msg)
-        print(self.mission_list)
-        return
+        self.logger.debug(
+            "MissionManager",
+            "mission_confirm_callback",
+            f"Received starting mission message: {msg}")
+
         mission_id = msg['payload']['id']
         mission_list = self.mission_list[mission_id]
 
-        self.thread_uav = {}
-        for uav in mission_list['uavList']:
-            print("2")
-            print(uav)
+        for uav in mission_list:
             drone_interface = self.uav_manager.drones_interfaces[uav]
 
-            if drone_interface == None:
+            if drone_interface is None:
                 continue
-            print("3")
-            self.logger.info("MissionManager", "start_mission_callback", f"Starting mission for uav {uav}")
-            print("4")
-            self.thread_uav[uav] = threading.Thread(
-                target=drone_interface.run_uav_mission,
-                args=[mission_list[uav], self.thread_uav[uav]])
-            print("5")
-            self.thread_uav[uav].start()
+
+            if drone_interface.is_alive():
+                self.logger.error(
+                    "MissionManager",
+                    "mission_confirm_callback",
+                    f"Drone {uav} is already running a mission")
+                continue
+
+            self.uav_mission_run_threads[uav] = drone_interface
+            drone_interface.start_mission(mission_list[uav])
+
+        self.mission_status[self.mission_id] = 'running'
+        self.client.info_messages.send_mission_info({
+            'id': mission_id,
+            'status': self.mission_status[self.mission_id]})
+
+        # Wait for all missions to finish
+        for uav in self.uav_mission_run_threads:
+            self.uav_mission_run_threads[uav].join()
+
+        if self.mission_list[mission_id] == 'running':
+            self.mission_status[self.mission_id] = 'finished'
+            self.client.info_messages.send_mission_info({
+                'id': mission_id,
+                'status': self.mission_status[self.mission_id]})
+
+            self.logger.debug(
+                "MissionManager",
+                "mission_confirm_callback",
+                f"Mission {mission_id} finished")
+
+    def change_mission_status_callback(self, msg: dict, args):
+        """ Start mission callback """
+        self.logger.debug(
+            "MissionManager",
+            "change_mission_status_callback",
+            f"Received mission message: {msg}")
+
+        mission_id = msg['payload']['id']
+        uav_list = self.mission_list[mission_id].keys()
+        status = ""
+        result = None
+        desired_status = str(args[0])
+        if desired_status == 'pause':
+            result = self.uav_manager.pause_mission(uav_list)
+            status = 'paused'
+        elif desired_status == 'resume':
+            result = self.uav_manager.resume_mission(uav_list)
+            status = 'resumed'
+        elif desired_status == 'stop':
+            result = self.uav_manager.stop_mission(uav_list)
+            status = 'cancelled'
+        else:
+            self.logger.error(
+                "MissionManager",
+                "change_mission_status_callback",
+                f"Invalid mission status: {args}")
+            return
+
+        # Analize result
+        result_rejected = False
+        result_reason = []
+        result_send = {}
+        for uav in result:
+            result_send[uav] = {}
+            for behavior in result[uav]:
+                result_send[uav][behavior.value] = result[uav][behavior]
+                if result_send[uav][behavior.value] != True:
+                    self.logger.debug(
+                        "MissionManager",
+                        "change_mission_status_callback",
+                        f"Error changing mission status: {result}")
+                    result_rejected = True
+                    result_reason.append(f"{uav} {behavior.value} could not be change to \
+                        {desired_status}")
+
+        self.client.request_messages.mission_status(
+            msg['header'],
+            msg['payload']['id'],
+            'rejected' if result_rejected else status,
+            msg['from'],
+            result_send)
+
+        self.logger.debug(
+            "MissionManager",
+            "change_mission_status_callback",
+            f"Mission {mission_id} status changed to {status}")
+
+        self.mission_status[mission_id] = status
+        self.client.info_messages.send_mission_info({
+            'id': mission_id,
+            'status': self.mission_status[mission_id] })

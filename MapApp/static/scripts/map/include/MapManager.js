@@ -350,38 +350,24 @@ class MissionManager extends ManagerPrototype {
      * @param {string} missionSet - Name of the header of the info message that will be received from server when a mission is set/reset.
      * @param {string} missionGet - Name of the header of the request message that will be received from server when the mission list is requested.
      */
-    constructor(colors, missionConfirm, missionPause, missionResume, missionAdd, missionSet, missionGet) {
+    constructor(colors, missionAdd, missionSet, missionGet) {
         super(colors, missionAdd, missionSet, missionGet);
 
-        /**
-         * List of callbacks when a mission is confirmed/rejected.
-         * @type {array}
-         * @private
-         */
-        this._missionConfirmCallbacks = [];
+        let mission_request_list = ['missionConfirm', 'missionPause',
+            'missionResume', 'missionStop', 'missionRemove'];
 
         /**
-         * List of callbacks when a mission is paused.
-         * @type {array}
+         * List of mission requests list of callbacks.
+         * @type {dict}
          * @private
          */
-        this._missionPauseCallbacks = [];
+        this._missionRequestListCallbacks = {};
 
-        /**
-         * List of callbacks when a mission is resumed.
-         * @type {array}
-         * @private
-         */
-        this._missionResumeCallbacks = [];
-
-        // Callback for confirm mission information from server
-        M.WS.addCallback('request', missionConfirm, this._onMissionConfirm.bind(this));
-
-        // Callback for pause mission information from server
-        M.WS.addCallback('request', missionPause, this._onMissionPause.bind(this));
-
-        // Callback for resume mission information from server
-        M.WS.addCallback('request', missionResume, this._onMissionResume.bind(this));
+        // Create WS callbacks for each mission request type
+        for (let i = 0; i < mission_request_list.length; i++) {
+            let header = mission_request_list[i];
+            M.WS.addCallback('request', header, this._onMissionRequestList.bind(this), header);
+        }
     }
 
     // #region Public methods
@@ -394,7 +380,7 @@ class MissionManager extends ManagerPrototype {
      * @access public
      */
     addMissionConfirmCallback(callback, ...args) {
-        this._missionConfirmCallbacks.push([callback, args]);
+        this._addMissionCallback('missionConfirm', callback, args);
     }
 
     /**
@@ -405,7 +391,7 @@ class MissionManager extends ManagerPrototype {
      * @access public
      */
     addMissionPauseCallback(callback, ...args) {
-        this._missionPauseCallbacks.push([callback, args]);
+        this._addMissionCallback('missionPause', callback, args);
     }
 
     /**
@@ -416,7 +402,29 @@ class MissionManager extends ManagerPrototype {
      * @access public
      */
     addMissionResumeCallback(callback, ...args) {
-        this._missionResumeCallbacks.push([callback, args]);
+        this._addMissionCallback('missionResume', callback, args);
+    }
+
+    /**
+     * Add a function callback when a mission is stopped by the server.
+     * @param {function} callback - Function to be called when the mission is stopped.
+     * @param  {...any} args - Arguments to be passed to the callback.
+     * @return {void}
+     * @access public
+     */
+    addMissionStopCallback(callback, ...args) {
+        this._addMissionCallback('missionStop', callback, args);
+    }
+
+    /**
+     * Add a function callback when a mission is removed by the server.
+     * @param {function} callback - Function to be called when the mission is removed.
+     * @param  {...any} args - Arguments to be passed to the callback.
+     * @return {void}
+     * @access public
+     */
+    addMissionRemoveCallback(callback, ...args) {
+        this._addMissionCallback('missionRemove', callback, args);
     }
 
     // #endregion
@@ -424,47 +432,78 @@ class MissionManager extends ManagerPrototype {
     // #region Private methods
 
     /**
-     * Callback to request message with header missionConfirm, that get the response of the mission confirmation.
+     * Callback to request message with header missionRequestList, that get the response of the mission request list.
+     * @param {string} header - Header of the request message.
+     * @param {function} callback - Function to be called when the mission is resumed.
+     * @param  {...any} args - Arguments to be passed to the callback.
+     * @return {void}
+     * @access private
+     */
+    _addMissionCallback(header, callback, ...args) {
+        if (header in this._missionRequestListCallbacks) {
+            this._missionRequestListCallbacks[header].push([callback, args]);
+        } else {
+            this._missionRequestListCallbacks[header] = [[callback, args]];
+        }
+    }
+
+
+    /**
+     * Callback to request message with header in missionRequestList, that get the response of the mission request.
      * @param {dict} payload - payload of the request message
+     * @param  {...any} args - Arguments to be passed to the callback.
      * @return {void} 
      * @access private
      */
-    _onMissionConfirm(payload) {
-        if (payload.status == 'confirmed') {
-            Utils.callCallbacks(this._missionConfirmCallbacks, payload);
-        } else if (payload.status == 'rejected') {
-            console.log('Mission rejected');
-            ConsoleSideBar.addWarning('Mission rejected: ' + payload);
+    _onMissionRequestList(payload, ...args) {
+        let header = args[0][0];
+        let callCallbacksFlag = false;
+        switch (header) {
+            case 'missionConfirm':
+                if (payload.status == 'confirmed') {
+                    callCallbacksFlag = true;
+                } else if (payload.status == 'rejected') {
+                    console.log('Mission confirm rejected');
+                    ConsoleSideBar.addWarning('Mission confirm rejected: ' + payload['extra']);
+                }
+                break;
+            case 'missionPause':
+                if (payload.status == 'paused') {
+                    callCallbacksFlag = true;
+                } else if (payload.status == 'rejected') {
+                    ConsoleSideBar.addWarning('Mission pause rejected: ' + payload['extra']);
+                }
+                break;
+            case 'missionResume':
+                if (payload.status == 'resumed') {
+                    callCallbacksFlag = true;
+                } else if (payload.status == 'rejected') {
+                    ConsoleSideBar.addWarning('Mission resume rejected: ' + payload['extra']);
+                }
+                break;
+            case 'missionStop':
+                if (payload.status == 'stopped') {
+                    callCallbacksFlag = true;
+                } else if (payload.status == 'rejected') {
+                    ConsoleSideBar.addWarning('Mission stop rejected: ' + payload['extra']);
+                }
+                break;
+            case 'missionRemove':
+                if (payload.status == 'removed') {
+                    callCallbacksFlag = true;
+                } else if (payload.status == 'rejected') {
+                    ConsoleSideBar.addWarning('Mission remove rejected: ' + payload['extra']);
+                }
+                break;
+            default:
+                console.log('Mission request header: ' + header + ' not found');
+                break;
+        }
+        if (callCallbacksFlag) {
+            Utils.callCallbacks(this._missionRequestListCallbacks[header], payload);
         }
     }
 
-    /**
-     * Callback to request message with header missionPause, that get the response of the mission pause.
-     * @param {dict} payload - payload of the request message
-     * @return {void}
-     * @access private
-     */
-    _onMissionPause(payload) {
-        if (payload.status == 'paused') {
-            Utils.callCallbacks(this._missionPauseCallbacks, payload);
-        } else if (payload.status == 'rejected') {
-            ConsoleSideBar.addWarning('Mission pause rejected: ' + payload);
-        }
-    }
-
-    /**
-     * Callback to request message with header missionResume, that get the response of the mission resume.
-     * @param {dict} payload - payload of the request message
-     * @return {void}
-     * @access private
-     */
-    _onMissionResume(payload) {
-        if (payload.status == 'resumed') {
-            Utils.callCallbacks(this._missionResumeCallbacks, payload);
-        } else if (payload.status == 'rejected') {
-            ConsoleSideBar.addWarning('Mission resume rejected: ' + payload);
-        }
-    }
     // #endregion
 }
 
@@ -484,6 +523,13 @@ class MapManager {
         mapCenter = config.Global.mapCenter,
         zoom = config.Global.zoom,
         host = config.WebSocket.host) {
+
+        /**
+         * List of the coordinates [latitude, longitude] of the center of the map.
+         * @type {array}
+         * @access public
+         */
+        this.mapCenter = mapCenter;
 
         /**
          * Smart list with the information recived from server.
@@ -528,16 +574,6 @@ class MapManager {
          */
         this.layerControl = L.control.layers(mapLayers, {}, { position: 'topleft', collapsed: false }).addTo(this.MAP);
 
-        // Add a layer control to the map, with the latitude and longitude of the mouse
-        L.control.coordinates({
-            position: "bottomright",
-            decimals: 5,
-            decimalSeperator: ".",
-            labelTemplateLat: "Lat: {y}",
-            labelTemplateLng: "Lng: {x}",
-            useLatLngOrder: true
-        }).addTo(this.MAP);
-
         // Create sidebars HTML elements
         this._initializeSideBars();
 
@@ -571,9 +607,28 @@ class MapManager {
      * @access public
      */
     initialize() {
+        // Manage GPS mode or Local Coordinates mode
+        this.USE_LOCAL_COORDINATES = config.Global.useLocalCoordinates;
+        this.X_NAME = 'Latitude';
+        this.Y_NAME = 'Longitude';
+        if (this.USE_LOCAL_COORDINATES) {
+            this.UTM = new LocalCoordinates(this.mapCenter);
+            this.X_NAME = 'X';
+            this.Y_NAME = 'Y';
+        } else {
+            // Add a layer control to the map, with the latitude and longitude of the mouse
+            L.control.coordinates({
+                position: "bottomright",
+                decimals: 5,
+                decimalSeperator: ".",
+                labelTemplateLat: "Lat: {y}",
+                labelTemplateLng: "Lng: {x}",
+                useLatLngOrder: true
+            }).addTo(this.MAP);
+        }
+
         this.UAV_MANAGER = new UavManager(config.UAV.colors, 'uavInfo', 'uavInfoSet', 'getUavList');
-        this.MISSION_MANAGER = new MissionManager(config.Mission.colors, 'missionConfirm', 'missionPause', 'missionResume',
-            'missionInfo', 'missionInfoSet', 'getMissionList');
+        this.MISSION_MANAGER = new MissionManager(config.Mission.colors, 'missionInfo', 'missionInfoSet', 'getMissionList');
 
         this.DRAW_LAYERS = new DrawLayers('draw');
         this.MISSION_LAYERS = new DrawLayers('confirmed');

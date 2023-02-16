@@ -35,6 +35,8 @@ class WebSocketClientInterface:
         self.message_callback_list = []
         self.connection = True
 
+        self.callbacks_threads = []
+
         # Execute run in a thread
         self.thread = threading.Thread(target=self.run)
         self.thread.start()
@@ -46,6 +48,8 @@ class WebSocketClientInterface:
         self.logger.info("WebSocketClientInterface", "run", "Running")
         while self.connection:
             self.websocket_client.websocket.run_forever()
+        for callback_thread in self.callbacks_threads:
+            callback_thread.join()
         self.thread.join()
 
     def close(self):
@@ -84,6 +88,7 @@ class WebSocketClientInterface:
         This function is called when websocket receives a message and manage it
         """
         self.logger.debug("WebSocketClientInterface", "on_message", f"Message recived: {message}")
+        print(f"Message recived: {message}")
         msg = json.loads(message)['message']
 
         # Communication with server
@@ -97,7 +102,10 @@ class WebSocketClientInterface:
         """ Call each callback function in list when a message is received """
         for callback in self.message_callback_list:
             if callback['header'] == msg['header'] and callback['type'] == msg['type']:
-                callback['function'](msg, callback['args'])
+                # Create a thread for each callback
+                thread = threading.Thread(target=callback['function'], args=(msg, callback['args']))
+                thread.start()
+                self.callbacks_threads.append(thread)
 
     def add_msg_callback(self, msg_type: str, msg_header: str, callback: object, *args: list):
         """ Add a function to callback list to messages with a specific header and type.

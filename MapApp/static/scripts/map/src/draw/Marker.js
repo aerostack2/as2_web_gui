@@ -121,14 +121,15 @@ class Marker extends DrawManager {
     * @access public
     */
    drawInfoAdd(htmlId, info, name = info.drawManager.options.name, initialHtml = [], endHtml = undefined, uavPickerType = 'radio') {
-
-      let lat = info.layer._latlng.lat;
-      let lng = info.layer._latlng.lng;
+      let coordinates = [info.layer._latlng.lat, info.layer._latlng.lng];
+      if (M.USE_LOCAL_COORDINATES) {
+          coordinates = M.UTM.getLocalUTM(coordinates);
+      }
 
       let id = htmlId + '-' + info.id;
-      let latDict = HTMLUtils.addDict('input', `${id}-lat`, { 'class': 'form-control', 'required': 'required', 'value': Utils.round(lat, 6) }, 'number', 'Latitude');
-      let lngDict = HTMLUtils.addDict('input', `${id}-lng`, { 'class': 'form-control', 'required': 'required', 'value': Utils.round(lng, 6) }, 'number', 'Longitude');
-      initialHtml.push(HTMLUtils.addDict('splitDivs', 'none', { 'class': 'row my-1 mx-1' }, [latDict, lngDict], { 'class': 'col-6' }));
+      let xDict = HTMLUtils.addDict('input', `${id}-x`, { 'class': 'form-control', 'required': 'required', 'value': Utils.round(coordinates[0], 6) }, 'number', M.X_NAME);
+      let yDict = HTMLUtils.addDict('input', `${id}-y`, { 'class': 'form-control', 'required': 'required', 'value': Utils.round(coordinates[1], 6) }, 'number', M.Y_NAME);
+      initialHtml.push(HTMLUtils.addDict('splitDivs', 'none', { 'class': 'row my-1 mx-1' }, [xDict, yDict], { 'class': 'col-6' }));
 
       return super.drawInfoAdd(htmlId, info, name, initialHtml, endHtml, uavPickerType);
    }
@@ -145,19 +146,22 @@ class Marker extends DrawManager {
     * @access private
     */
    _addChangeCallback(id, info) {
-      Utils.addFormCallback(`${id}-change`, [`${id}-lat`, `${id}-lng`], ['lat', 'lng'], this._changeCallback.bind(this), info);
+      Utils.addFormCallback(`${id}-change`, [`${id}-x`, `${id}-y`], ['x', 'y'], this._changeCallback.bind(this), info);
    }
 
    /**
     * Overload the Draw Manager _changeCallback to change the coordinates of the marker.
     * @param {array} myargs - List with the info dict, that has the layer and the Draw Manager options.
-    * @param {dict} args - Dict with ['${id}-lat', '${id}-lng'] as keys and their values.
+    * @param {dict} args - Dict with ['${id}-x', '${id}-y'] as keys and their values.
     * @returns {void}
     * @access private
     */
    _changeCallback(myargs, inputs) {
       let layer = myargs[0].layer;
-      layer.setLatLng(L.latLng(inputs.lat, inputs.lng));
+      if (M.USE_LOCAL_COORDINATES) {
+         inputs = M.UTM.getLatLng(inputs);
+      }
+      layer.setLatLng(L.latLng(inputs));
    }
 
    // #endregion

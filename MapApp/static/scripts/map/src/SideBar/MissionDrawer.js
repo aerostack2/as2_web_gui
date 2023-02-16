@@ -115,7 +115,7 @@ class MissionDrawer {
                     this._wayPoint.codeDraw(layer.values, {'missionId': missionId}, undefined, desiredColor);
                     break;
                 case 'Area':
-                    this._area.codeDraw(layer.values[0], {'missionId': missionId}, {'opacity': 0.3, 'color': M.MISSION_MANAGER.getColors(missionId)[1]});
+                    this._area.codeDraw(layer.values, {'missionId': missionId}, {'opacity': 0.3, 'color': M.MISSION_MANAGER.getColors(missionId)[1]});
 
                     for (let j = 0; j < layer.uavList.length; j++) {
                         let uavId_aux = layer.uavList[j];

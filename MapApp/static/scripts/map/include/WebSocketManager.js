@@ -131,6 +131,7 @@ class WebSocketManager {
      * @access public
      */
     sendRequest(header, payload = {}, to = 'broadcast') {
+        console.log('sendRequest: ' + header)
         this._send({
             'type': 'request',
             'header': header,
@@ -196,7 +197,7 @@ class WebSocketManager {
 
     /**
      * Send a request of Pause Mission to the Web Socket server.
-     * @param {string} missionId - Id of the mission to start.
+     * @param {string} missionId - Id of the mission to pause.
      * @return {void}
      * @access public
      */
@@ -213,7 +214,7 @@ class WebSocketManager {
 
     /**
      * Send a request of Resume Mission to the Web Socket server.
-     * @param {string} missionId - Id of the mission to start.
+     * @param {string} missionId - Id of the mission to resume.
      * @return {void}
      * @access public
      */
@@ -221,6 +222,7 @@ class WebSocketManager {
         this.sendRequest(
             'missionResume',
             {
+                'status': 'request',
                 'id': missionId,
             },
             'manager'
@@ -228,15 +230,16 @@ class WebSocketManager {
     }
 
     /**
-     * Send a request of End Mission to the Web Socket server.
-     * @param {string} missionId - Id of the mission to start.
+     * Send a request of Stop Mission to the Web Socket server.
+     * @param {string} missionId - Id of the mission to stop.
      * @return {void}
      * @access public
      */
-    sendEndMission(missionId) {
+    sendStopMission(missionId) {
         this.sendRequest(
-            'missionEnd',
+            'missionStop',
             {
+                'status': 'request',
                 'id': missionId,
             },
             'manager'
