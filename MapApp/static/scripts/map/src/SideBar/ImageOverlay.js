@@ -54,8 +54,6 @@ class ImageOVerlay {
         this._point_list.push(L.latLng(_configFile.bottomLeftCorner));
 
         if (M.USE_LOCAL_COORDINATES) {
-            console.log("Converting to local coordinates")
-            console.log(this._point_list)
             this._point_list = M.UTM.getLatLngs(this._point_list);
         }
 

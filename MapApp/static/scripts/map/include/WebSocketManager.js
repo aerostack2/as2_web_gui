@@ -131,7 +131,6 @@ class WebSocketManager {
      * @access public
      */
     sendRequest(header, payload = {}, to = 'broadcast') {
-        console.log('sendRequest: ' + header)
         this._send({
             'type': 'request',
             'header': header,

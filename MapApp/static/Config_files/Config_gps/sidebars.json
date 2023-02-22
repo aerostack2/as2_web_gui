@@ -1,9 +1,7 @@
 {
     "Home": {
-        "goTo": [40.158157, -3.381046],
         "goToZoom": 20,
-        "UAVname": "UAV1",
-        "UAVvalue": [40.158157, -3.381046]
+        "UAVname": "UAV1"
     },
     "ImageOverlay": {
         "opacity": 0.7,

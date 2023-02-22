@@ -21,59 +21,6 @@
  * }
  */
 
-// class LocalCoordinates {
-//     constructor(mapCenter) {
-//         console.log('LocalCoordinates constructor');
-//         this.utm = new UTMLatLng();
-//         this.precision = 3;
-//         this.setOrigin(mapCenter);
-//     }
-
-//     setOrigin(mapCenter) {
-
-//         this.originMarker = L.marker(mapCenter, {}).addTo(M.MAP);
-//         let origin = this.originMarker._latlng;
-
-//         this.LatLonOrigin = origin;
-//         this.latOrigin = parseFloat(origin.lat);
-//         this.lngOrigin = parseFloat(origin.lng);
-
-//         this.UTMOrigin = this.utm.convertLatLngToUtm(this.latOrigin, this.lngOrigin, this.precision);
-//         this.xOrigin = parseFloat(this.UTMOrigin.Easting);
-//         this.yOrigin = parseFloat(this.UTMOrigin.Northing);
-//         this.zoneNumOrigin = this.UTMOrigin.ZoneNumer;
-//         this.zoneLetterOrigin = this.UTMOrigin.ZoneLetter;
-//     }
-
-//     getLatLon(easting, northing, zoneNum, zoneLetter) {
-//         return this.utm.convertUtmToLatLng(easting, northing, zoneNum, zoneLetter);
-//     }
-
-//     getUTM(latitude, longitude) {
-//         return this.utm.convertLatLngToUtm(latitude, longitude, this.precision);
-//     }
-
-//     localUTM2LatLong(xLocal, yLocal) {
-//         let x = xLocal + this.xOrigin;
-//         let y = yLocal + this.yOrigin;
-        
-//         return this.getLatLon(x, y, this.zoneNumOrigi, this.zoneLetterOrigin);
-//     }
-
-//     latLong2LocalUTM(lat, lng) {
-//         let globalUTM = this.getUTM(lat, lng);
-
-//         let x = parseFloat(globalUTM.Easting) - this.xOrigin;
-//         let y = parseFloat(globalUTM.Northing) - this.yOrigin;
-
-//         return {
-//             x: x,
-//             y: y
-//         };
-//     }
-// }
-
-
 class LocalCoordinates {
     constructor(mapCenter) {
         console.log('LocalCoordinates constructor');

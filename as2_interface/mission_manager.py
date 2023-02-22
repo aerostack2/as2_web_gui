@@ -5,7 +5,6 @@ mission_manager.py
 import copy
 import numpy as np
 from swarm_pylib.swarm_pylib import Swarm
-import as2_interface.Unit_conversion as utm
 from AerostackUI.websocket_interface import WebSocketClientInterface
 from AerostackUI.aerostack_ui_logger import AerostackUILogger
 from .uav_manager import UavManager
@@ -229,114 +228,6 @@ class MissionInterpreter():
                     raise Exception("Next position for UAV not found")
 
         return last_position_list
-
-    # @staticmethod
-    # def swarm_planning(uav_list: list, initial_position: list,
-    #                    last_position: list, height: float, values: list,
-    #                    algorithm: str, street_spacing: float, wp_space: float,
-    #                    theta: float, use_cartesian_coordinates: bool = True) -> tuple:
-    #     """ Swarm planning """
-    #     zone = None
-    #     letter = None
-    #     print("Initial position: ", initial_position)
-
-    #     # Convert to utm
-    #     if not use_cartesian_coordinates:
-    #         initial_position_utm = {}
-    #         for uav in uav_list:
-    #             east, north, zone_number, zone_letter = utm.GPS_to_UTM(
-    #                 initial_position[uav][0], initial_position[uav][1])
-    #             initial_position_utm[uav] = [east, north]
-    #             zone = zone_number
-    #             letter = zone_letter
-
-    #         last_position_utm = {}
-    #         for uav in uav_list:
-    #             east, north, zone_number, zone_letter = utm.GPS_to_UTM(
-    #                 last_position[uav][0], last_position[uav][1])
-    #             last_position_utm[uav] = [east, north]
-
-    #         values_utm = []
-    #         for value in values:
-    #             east, north, zone_number, zone_letter = utm.GPS_to_UTM(
-    #                 value[0], value[1])
-    #             values_utm.append([east, north])
-    #     else:
-    #         initial_position_utm = initial_position
-    #         last_position_utm = last_position
-    #         values_utm = values
-
-    #     # Swarm planning
-    #     uav_initial_position = []
-    #     for uav in initial_position_utm:
-    #         uav_initial_position.append(
-    #             [initial_position_utm[uav][0], initial_position_utm[uav][1]])
-
-    #     uav_last_position = []
-    #     for uav in last_position_utm:
-    #         uav_last_position.append(
-    #             [last_position_utm[uav][0], last_position_utm[uav][1]])
-
-    #     vel_input = np.full(len(uav_initial_position), 1)
-    #     vel_sum = sum(vel_input)
-    #     uav_weight = np.zeros_like(vel_input, dtype=float)
-    #     for i in range(0, len(vel_input)):
-    #         uav_weight[i] = float(vel_input[i])/vel_sum
-
-    #     waypoints, wpt_grid = swarm.compute_area(
-    #         np.array(uav_initial_position),
-    #         np.array(uav_last_position),
-    #         uav_weight,
-    #         np.array(values_utm),
-    #         altitude=height,
-    #         street_spacing=street_spacing,
-    #         wpt_separation=wp_space,
-    #         path_algorithm=algorithm,
-    #         distribution_algorithm="binpat",
-    #         theta=theta
-    #     )
-
-    #     # Data format
-    #     uav_list_wp_utm = {}
-    #     for index, uav_wp in enumerate(waypoints):
-    #         uav_wp_aux = []
-    #         for wp in uav_wp:
-    #             if not np.isnan(wp[0]) or not np.isnan(wp[1]):
-    #                 uav_wp_aux.append(wp)
-    #             else:
-    #                 break
-    #         uav_list_wp_utm[uav_list[index]] = uav_wp_aux
-
-
-    #     uav_list_wp_gps = {}
-    #     if not use_cartesian_coordinates:
-    #         for uav in uav_list:
-    #             uav_list_wp_gps[uav] = [
-    #                 [initial_position[uav][0], initial_position[uav][1], height]]
-
-    #             utm_values = uav_list_wp_utm[uav]
-    #             for utm_value in utm_values:
-    #                 gps_value = utm.UTM_to_GPS(
-    #                     utm_value[0], utm_value[1], zone, letter)
-    #                 uav_list_wp_gps[uav].append(
-    #                     [gps_value[0], gps_value[1], height])
-
-    #             uav_list_wp_gps[uav].append(
-    #                 [last_position[uav][0], last_position[uav][1], height])
-    #     else:
-    #         for uav in uav_list:
-    #             uav_list_wp_gps[uav] = [
-    #                 [initial_position[uav][0], initial_position[uav][1], height]]
-
-    #             utm_values = uav_list_wp_utm[uav]
-    #             for utm_value in utm_values:
-    #                 uav_list_wp_gps[uav].append(
-    #                     [utm_value[0], utm_value[1], height])
-
-    #             uav_list_wp_gps[uav].append(
-    #                 [last_position[uav][0], last_position[uav][1], height])            
-
-    #     return uav_list_wp_gps
 
 
 class MissionManager():

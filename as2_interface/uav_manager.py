@@ -9,10 +9,10 @@ from as2_python_api.drone_interface_gps import DroneInterfaceBase
 from as2_python_api.behavior_manager.behavior_manager import DroneBehaviorManager
 from as2_python_api.modules.land_module import LandModule
 from as2_python_api.modules.takeoff_module import TakeoffModule
-from as2_python_api.modules.goto_module import GotoModule
+from as2_python_api.modules.go_to_module import GoToModule
 from as2_python_api.modules.follow_path_module import FollowPathModule
 from as2_python_api.modules.gps_module import GpsModule
-from as2_python_api.modules.goto_gps_module import GotoGpsModule
+from as2_python_api.modules.go_to_gps_module import GoToGpsModule
 from as2_python_api.modules.follow_path_gps_module import FollowPathGpsModule
 from as2_python_api.behavior_actions.behavior_handler import BehaviorHandler
 from as2_msgs.msg import YawMode
@@ -20,7 +20,7 @@ from AerostackUI.websocket_interface import WebSocketClientInterface
 from AerostackUI.aerostack_ui_logger import AerostackUILogger
 
 
-VIRTUAL_MODE = False
+VIRTUAL_MODE = True
 
 
 class UavInterface(DroneInterfaceBase, threading.Thread):
@@ -45,11 +45,11 @@ class UavInterface(DroneInterfaceBase, threading.Thread):
             self.takeoff = TakeoffModule(drone=self)
 
             if self.use_cartesian_coordinates:
-                self.goto = GotoModule(drone=self)
+                self.go_to = GoToModule(drone=self)
                 self.follow_path = FollowPathModule(drone=self)
             else:
                 self.gps = GpsModule(drone=self)
-                self.goto = GotoGpsModule(drone=self)
+                self.go_to = GoToGpsModule(drone=self)
                 self.follow_path = FollowPathGpsModule(drone=self)
 
         else:
@@ -183,7 +183,6 @@ class UavInterface(DroneInterfaceBase, threading.Thread):
                     element['values'][0][1],
                     element['values'][0][2]
                 ]
-                # self.goto(*waypoint, speed, self.yaw_mode.mode, self.yaw_mode.angle)
 
             elif element['name'] == 'LandPoint':
                 waypoint = [
@@ -196,7 +195,7 @@ class UavInterface(DroneInterfaceBase, threading.Thread):
                     "UavInterface",
                     "run_uav_mission",
                     f"UAV {self.drone_id}. Land point {waypoint} and speed {speed}")
-                self.goto(*waypoint, speed, self._yaw_mode.mode,
+                self.go_to(*waypoint, speed, self._yaw_mode.mode,
                           self._yaw_mode.angle)
 
                 self.logger.info(
@@ -216,10 +215,9 @@ class UavInterface(DroneInterfaceBase, threading.Thread):
                     "UavInterface",
                     "run_uav_mission",
                     f"UAV {self.drone_id}. Follow path {waypoint} and speed {speed}")
-                # self.follow_path(waypoints, speed, self.yaw_mode.mode, self.yaw_mode.angle)
-
+                # self.follow_path(waypoints, speed, self._yaw_mode.mode, self._yaw_mode.angle)
                 for waypoint in waypoints:
-                    self.goto(*waypoint, speed, self._yaw_mode.mode,
+                    self.go_to(*waypoint, speed, self._yaw_mode.mode,
                               self._yaw_mode.angle)
 
             elif element['name'] == 'WayPoint':
@@ -232,8 +230,8 @@ class UavInterface(DroneInterfaceBase, threading.Thread):
                 self.logger.info(
                     "UavInterface",
                     "run_uav_mission",
-                    f"UAV {self.drone_id}. Goto {waypoint} and speed {speed}")
-                self.goto(*waypoint, speed, self._yaw_mode.mode,
+                    f"UAV {self.drone_id}. Go to {waypoint} and speed {speed}")
+                self.go_to(*waypoint, speed, self._yaw_mode.mode,
                           self._yaw_mode.angle)
 
             elif element['name'] == 'Area':
@@ -242,11 +240,11 @@ class UavInterface(DroneInterfaceBase, threading.Thread):
                     "UavInterface",
                     "run_uav_mission",
                     f"UAV {self.drone_id}. Area path {waypoints} and speed {speed}")
-                # self.follow_path(waypoints, speed, self.yaw_mode.mode, self.yaw_mode.angle)
-
-                for waypoint in waypoints:
-                    self.goto(*waypoint, speed, self._yaw_mode.mode,
-                              self._yaw_mode.angle)
+                print("Area path: ", waypoints)
+                self.follow_path(waypoints, speed, self._yaw_mode.mode, self._yaw_mode.angle)
+                # for waypoint in waypoints:
+                #     self.go_to(*waypoint, speed, self._yaw_mode.mode,
+                #               self._yaw_mode.angle)
 
             else:
                 # print("Unknown layer")

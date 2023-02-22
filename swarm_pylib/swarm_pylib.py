@@ -238,6 +238,11 @@ class Swarm():
         if filter_path_waypoints:
             uavs_path = Swarm.filter_waypoints(uavs_path)
 
+        # Add first and last waypoints to the path
+        uavs_path = Swarm.add_first_last_waypoints(
+            initial_position_list,
+            last_position_list,
+            uavs_path)
         return uavs_path
 
     @staticmethod
@@ -401,6 +406,26 @@ class Swarm():
         # else:
         #     return False
 
+    @staticmethod
+    def add_first_last_waypoints(
+            initial_position_list: list,
+            last_position_list: list,
+            uavs_path: list):
+        """ Add the initial and last waypoints to the path of each UAV
+        Args:
+            initial_position_list (list): List of lists with x, y and height values of the initial
+                position of each UAV
+            last_position_list (list): List of lists with x, y and height values of the last
+                position of each UAV
+            uavs_path (list): List of lists with x, y and height values of the path for each UAV
+        Returns:
+            uavs_path (list): List of lists with x, y and height values of the path for each UAV 
+            with the initial and last waypoints added
+        """
+        for i in range(len(uavs_path)):
+            uavs_path[i].insert(0, initial_position_list[i])
+            uavs_path[i].append(last_position_list[i])
+        return uavs_path
 
 
 def _test_swarm_planning_gps_input_local(

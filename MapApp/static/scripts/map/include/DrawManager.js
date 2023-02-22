@@ -93,7 +93,7 @@ class DrawManager {
                 break;
             case 'Polyline':
                 if (M.USE_LOCAL_COORDINATES) {
-                    values = M.UTM.getLocalUTMs(values);
+                    values = M.UTM.getLatLngs(values);
                 }
                 draw = L.polyline(values, drawOption);
                 break;
@@ -105,7 +105,7 @@ class DrawManager {
                 break;
             case 'Polygon':
                 if (M.USE_LOCAL_COORDINATES) {
-                    values = M.UTM.getLocalUTMs(values);
+                    values = M.UTM.getLatLngs(values);
                 }
                 draw = L.polygon([values], drawOption);
                 break;
@@ -372,7 +372,7 @@ class DrawManager {
      * @access private
      */
     _drawInfoGetHeight(id, info) {
-        let height = info.drawManager.options.height[0];
+        let height = info.drawManager.options.height;
 
         // Seep range HTML
         let heightInput = HTMLUtils.addDict('input', `${id}-heightInput`, { 'class': 'form-control', 'required': 'required', 'value': height }, 'text', height);

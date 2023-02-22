@@ -66,10 +66,6 @@ class MissionDrawer {
      * @access private
      */
     _missionConfirmCallback(myargs, args) {
-        // console.log("Mission confirmed");
-        // console.log(myargs);
-        // console.log(args);
-
         let missionId = args[0]['oldId'];
         let layers = M.DRAW_LAYERS.getList();
 
@@ -92,9 +88,6 @@ class MissionDrawer {
     newMissionCallback(myargs, args) {
         let missionId = args[0];
         let missionDict = M.MISSION_MANAGER.getDictById(missionId);
-
-        // console.log("New mission callback");
-        // console.log(missionDict);
 
         for (let i = 0; i < missionDict.layers.length; i++) {
             let layer = missionDict.layers[i];

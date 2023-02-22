@@ -186,10 +186,8 @@ class MissionController {
         this._checkInitalize();
         if (args[0]['status'] == 'paused') {
             document.getElementById(`${this.htmlId}-btn-pause`).innerHTML = 'Resume mission';
-            console.log(document.getElementById(`${this.htmlId}-btn-pause`).innerHTML)
         } else if (args[0]['status'] == 'resumed') {
             document.getElementById(`${this.htmlId}-btn-pause`).innerHTML = 'Pause mission';
-            console.log(document.getElementById(`${this.htmlId}-btn-pause`).innerHTML)
         }
     }
 
@@ -255,7 +253,6 @@ class MissionController {
      * @access private
      */
     _pauseResumeMissionCallback(e) {
-        console.log('Pause/Resume mission')
         let btn_text = document.getElementById(`${this.htmlId}-btn-pause`);
         if (btn_text.innerHTML === 'Pause mission') {
             M.WS.sendPauseMission(this._selectedMissionId);
@@ -271,7 +268,6 @@ class MissionController {
      * @access private
      */
     _stopMissionCallback(e) {
-        console.log('Stop mission callback')
         M.WS.sendStopMission(this._selectedMissionId);
     }
 

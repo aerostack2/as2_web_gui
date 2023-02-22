@@ -25,7 +25,11 @@ class Home {
          * @type {array}
          * @access private
          */
-        this._defaultGoTo = _configFile.goTo;
+        if (M.USE_LOCAL_COORDINATES) {
+            this._defaultGoTo = [0.0, 0.0];
+        } else {
+            this._defaultGoTo = config.Global.mapCenter;
+        }
 
         /**
          * Default value of Go To Zoom loaded from config file.
@@ -46,7 +50,11 @@ class Home {
          * @type {array}
          * @access private
          */
-        this._defaultUAV = _configFile.UAVvalue;
+        if (M.USE_LOCAL_COORDINATES) {
+            this._defaultUAV = [0.0, 0.0];
+        } else {
+            this._defaultUAV = config.Global.mapCenter;
+        }
 
         // Initialize the home
         this._addHTML();

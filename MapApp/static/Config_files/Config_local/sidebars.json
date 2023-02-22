@@ -1,21 +1,19 @@
 {
     "Home": {
-        "goTo": [40.158157, -3.381046],
         "goToZoom": 20,
-        "UAVname": "UAV1",
-        "UAVvalue": [40.158157, -3.381046]
+        "UAVname": "UAV1"
     },
     "ImageOverlay": {
         "opacity": 0.7,
-        "url": "https://raw.githubusercontent.com/cvar-upm/cvar-upm.github.io/main/logoHorizontal.png",
+        "url": "/static/scripts/map/img/base10x10.png",
         "icon": "/static/scripts/map/img/arrows-alt-solid.svg",
-        "topLeftCorner": [28.14422, -16.50366],
-        "topRightCorner": [28.14418, -16.50050],
-        "bottomLeftCorner": [28.14287, -16.50366]
+        "topLeftCorner": [-10, 10],
+        "topRightCorner": [10, 10],
+        "bottomLeftCorner": [-10, -10]
 
     },
     "MissionPlanner": {
-        "defaultHeight": 2.0,
+        "defaultHeight": 1.0,
         "defaultSpeed": 0.5
     },
     "MissionInfo": {
@@ -37,10 +35,10 @@
             ["",     "Yaw mode",        ["state", "yaw_mode"]],
             ["",     "Control mode",    ["state", "control_mode"]],
             ["",     "Reference frame", ["state", "reference_frame"]],
-            ["Pose", "lat",             ["pose", [0]]],
-            ["",     "lng",             ["pose", [1]]],
-            ["",      "height",         ["pose", [2]]],
-            ["",      "yaw",            ["pose", [3]]]
+            ["Pose", "x",               ["pose", [0]]],
+            ["",     "y",               ["pose", [1]]],
+            ["",     "height",          ["pose", [2]]],
+            ["",     "yaw",             ["pose", [3]]]
         ],
         "roundTable": [
             [["pose", [0]], 6],

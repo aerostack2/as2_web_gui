@@ -238,8 +238,6 @@ class MissionPlanner {
      * @access private
      */
     keyDownCallback(e) {
-        console.log("key pressed");
-        console.log(e.key)
         switch (e.key) {
             case 'Escape':
                 DrawController.drawMouse();
