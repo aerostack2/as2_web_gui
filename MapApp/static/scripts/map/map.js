@@ -28,7 +28,7 @@ window.onload = function () {
      * @type {Config}
      * @access private
      */
-    config = new Config('config.json', initialize);
+    config = new Config(initialize);
 
     /**
      * Start the map when all config files are loaded.

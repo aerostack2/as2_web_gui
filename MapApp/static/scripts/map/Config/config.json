@@ -1,9 +1,0 @@
-{
-    "Global": "global.json",
-    "WebSocket": "websocket.json",
-    "Markers": "markers.json",
-    "UAV": "uav.json",
-    "Mission": "mission.json",
-    "Layers": "layers.json",
-    "SideBars": "sidebars.json"
-}

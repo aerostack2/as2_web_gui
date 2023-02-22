@@ -13,6 +13,7 @@ class WebSocketManager {
          * @type {WebSocket}
          * @access private
          */
+        console.log('WebSocketManager: ' + host)
         this._webSocket = new WebSocket(host);
 
         // Conect web socket callbacks to class functions
@@ -186,6 +187,41 @@ class WebSocketManager {
         this.sendRequest(
             'missionStart',
             {
+                'status': 'request',
+                'id': missionId,
+            },
+            'manager'
+        );
+    }
+
+    /**
+     * Send a request of Pause Mission to the Web Socket server.
+     * @param {string} missionId - Id of the mission to pause.
+     * @return {void}
+     * @access public
+     */
+    sendPauseMission(missionId) {
+        this.sendRequest(
+            'missionPause',
+            {
+                'status': 'request',
+                'id': missionId,
+            },
+            'manager'
+        );
+    }
+
+    /**
+     * Send a request of Resume Mission to the Web Socket server.
+     * @param {string} missionId - Id of the mission to resume.
+     * @return {void}
+     * @access public
+     */
+    sendResumeMission(missionId) {
+        this.sendRequest(
+            'missionResume',
+            {
+                'status': 'request',
                 'id': missionId,
             },
             'manager'
@@ -194,7 +230,7 @@ class WebSocketManager {
 
     /**
      * Send a request of Stop Mission to the Web Socket server.
-     * @param {string} missionId - Id of the mission to start.
+     * @param {string} missionId - Id of the mission to stop.
      * @return {void}
      * @access public
      */
@@ -202,22 +238,7 @@ class WebSocketManager {
         this.sendRequest(
             'missionStop',
             {
-                'id': missionId,
-            },
-            'manager'
-        );
-    }
-
-    /**
-     * Send a request of End Mission to the Web Socket server.
-     * @param {string} missionId - Id of the mission to start.
-     * @return {void}
-     * @access public
-     */
-    sendEndMission(missionId) {
-        this.sendRequest(
-            'missionEnd',
-            {
+                'status': 'request',
                 'id': missionId,
             },
             'manager'

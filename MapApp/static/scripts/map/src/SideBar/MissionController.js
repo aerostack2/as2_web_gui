@@ -30,6 +30,10 @@ class MissionController {
         // Add callback to a new mission added
         M.MISSION_MANAGER.addInfoAddCallback(this._updateMissionListCallback.bind(this));
 
+        // Change mission controller button pause / resume text
+        M.MISSION_MANAGER.addMissionPauseCallback(this._updateMissionStatusBtnCallback.bind(this), 'pause');
+        M.MISSION_MANAGER.addMissionResumeCallback(this._updateMissionStatusBtnCallback.bind(this), 'resume');
+
         // Initialize the mission controller with a file input
         this._initializedLoad();
     }
@@ -126,11 +130,11 @@ class MissionController {
         let splitBtn = [];
         splitBtn.push(HTMLUtils.addDict('button', `${this.htmlId}-btn-reload`, {'class': 'btn btn-primary',}, `Reload missions`));
         // splitBtn.push(HTMLUtils.addDict('button', `${this.htmlId}-btn-edit`,   {'class': 'btn btn-primary',}, `Edit mission`));
-        splitBtn.push(HTMLUtils.addDict('button', `${this.htmlId}-btn-save`,   {'class': 'btn btn-primary',}, `Save mission`));
-        splitBtn.push(HTMLUtils.addDict('button', `${this.htmlId}-btn-center`, {'class': 'btn btn-primary',}, `Center mission`));
-        splitBtn.push(HTMLUtils.addDict('button', `${this.htmlId}-btn-start`,  {'class': 'btn btn-primary',}, `Start mission`));
+        splitBtn.push(HTMLUtils.addDict('button', `${this.htmlId}-btn-save`,   {'class': 'btn btn-primary',}, 'Save mission'));
+        splitBtn.push(HTMLUtils.addDict('button', `${this.htmlId}-btn-center`, {'class': 'btn btn-primary',}, 'Center mission'));
+        splitBtn.push(HTMLUtils.addDict('button', `${this.htmlId}-btn-start`,  {'class': 'btn btn-primary',}, 'Start mission'));
+        splitBtn.push(HTMLUtils.addDict('button', `${this.htmlId}-btn-pause`,  {'class': 'btn btn-success'},  'Pause mission'));
         splitBtn.push(HTMLUtils.addDict('button', `${this.htmlId}-btn-stop`,   {'class': 'btn btn-danger'},   'Stop mission'));
-        splitBtn.push(HTMLUtils.addDict('button', `${this.htmlId}-btn-end`,    {'class': 'btn btn-success'},  'End mission'));
         missionControllerHtmlList.push(HTMLUtils.addDict('splitDivs', 'none', {}, splitBtn, {'class': 'row m-1'}));
 
         // Global collapse
@@ -151,8 +155,8 @@ class MissionController {
         Utils.addButtonCallback(`${this.htmlId}-btn-save`,   this._saveMissionCallback.bind(this), []);
         Utils.addButtonCallback(`${this.htmlId}-btn-center`, this._centerMissionCallback.bind(this), []);
         Utils.addButtonCallback(`${this.htmlId}-btn-start`,  this._startMissionCallback.bind(this), []);
+        Utils.addButtonCallback(`${this.htmlId}-btn-pause`,  this._pauseResumeMissionCallback.bind(this), []);
         Utils.addButtonCallback(`${this.htmlId}-btn-stop`,   this._stopMissionCallback.bind(this), []);
-        Utils.addButtonCallback(`${this.htmlId}-btn-end`,    this._endMissionCallback.bind(this), []);
     }
 
     // #region Buttons callbacks
@@ -169,6 +173,22 @@ class MissionController {
         HTMLUtils.updateDropDown(`${this.htmlId}-MissionList`, M.MISSION_MANAGER.getList());
         Utils.addButtonsCallback(`${this.htmlId }-MissionList-item`, this._clickMissionListCallback.bind(this));
         this._selectedMissionId = M.MISSION_MANAGER.getList()[0];
+    }
+
+    /**
+     * Callback to mission status changed. Update the mission status.
+     * @param {array} myargs - List of arguments passed to the callback. Empty.
+     * @param {dict} args - Dictionary. Empty.
+     * @returns {void}
+     * @access private
+     */
+    _updateMissionStatusBtnCallback(myargs, args) {
+        this._checkInitalize();
+        if (args[0]['status'] == 'paused') {
+            document.getElementById(`${this.htmlId}-btn-pause`).innerHTML = 'Resume mission';
+        } else if (args[0]['status'] == 'resumed') {
+            document.getElementById(`${this.htmlId}-btn-pause`).innerHTML = 'Pause mission';
+        }
     }
 
     /**
@@ -215,10 +235,29 @@ class MissionController {
         let missionDict = M.MISSION_MANAGER.getDictById(this._selectedMissionId);
         let center = missionDict.layers[0].values;
 
-        if (center.lat !== undefined && center.lng !== undefined) {
+        if (M.USE_LOCAL_COORDINATES) {
+            center = M.UTM.getLatLngs(center);
+        }
+
+        if (center[0] !== undefined && center[1] !== undefined) {
             M.MAP.flyTo(center, M.MAP.getZoom());
-        } else if (center[0].lat !== undefined && center[0].lng !== undefined) {
+        } else if (center[0][0] !== undefined && center[0][1] !== undefined) {
             M.MAP.flyToBounds(center, M.MAP.getZoom());
+        }
+    }
+
+    /**
+     * Callback for stop mission button. Send a stop mission message to the server.
+     * @param {Event} e - Button click event.
+     * @returns {void}
+     * @access private
+     */
+    _pauseResumeMissionCallback(e) {
+        let btn_text = document.getElementById(`${this.htmlId}-btn-pause`);
+        if (btn_text.innerHTML === 'Pause mission') {
+            M.WS.sendPauseMission(this._selectedMissionId);
+        } else if (btn_text.innerHTML === 'Resume mission') {
+            M.WS.sendResumeMission(this._selectedMissionId);
         }
     }
 
@@ -230,16 +269,6 @@ class MissionController {
      */
     _stopMissionCallback(e) {
         M.WS.sendStopMission(this._selectedMissionId);
-    }
-
-    /**
-     * Callback for end mission button. Send an end mission message to the server.
-     * @param {Event} e - Button click event.
-     * @returns {void}
-     * @access private
-     */
-    _endMissionCallback(e) {
-        M.WS.sendEndMission(this._selectedMissionId);
     }
 
     /**

@@ -86,16 +86,28 @@ class DrawManager {
 
         switch (this.type) {
             case 'Marker':
+                if (M.USE_LOCAL_COORDINATES) {
+                    values = M.UTM.getLatLng(values);
+                }
                 draw = L.marker(values, drawOption);
                 break;
             case 'Polyline':
+                if (M.USE_LOCAL_COORDINATES) {
+                    values = M.UTM.getLatLngs(values);
+                }
                 draw = L.polyline(values, drawOption);
                 break;
             case 'Circle':
+                if (M.USE_LOCAL_COORDINATES) {
+                    values = M.UTM.getLatLng(values);
+                }
                 draw = L.circle(values[0], values[1], drawOption);
                 break;
             case 'Polygon':
-                draw = L.polygon(values, drawOption);
+                if (M.USE_LOCAL_COORDINATES) {
+                    values = M.UTM.getLatLngs(values);
+                }
+                draw = L.polygon([values], drawOption);
                 break;
             default:
                 alert("Try to draw from code a type: " + drawOption);
@@ -119,7 +131,8 @@ class DrawManager {
      */
     userDraw(options = {}, layerOptions = {}) {
 
-        let drawOption = this._mergeOptions(options, layerOptions);
+        let drawOption_aux = this._mergeOptions(options, layerOptions);
+        let drawOption = Object.assign({}, drawOption_aux, {'continueDrawing': false});
 
         switch (this.type) {
             case 'Marker':
@@ -359,7 +372,7 @@ class DrawManager {
      * @access private
      */
     _drawInfoGetHeight(id, info) {
-        let height = info.drawManager.options.height[0];
+        let height = info.drawManager.options.height;
 
         // Seep range HTML
         let heightInput = HTMLUtils.addDict('input', `${id}-heightInput`, { 'class': 'form-control', 'required': 'required', 'value': height }, 'text', height);
@@ -410,9 +423,11 @@ class DrawManager {
     _updateHeightRangeCallback(myargs, args) {
         // TODO: Enable height range
         // myargs[0].drawManager.options.height = [args.heightMin, args.heightMax];
+        myargs[0].drawManager.options.height = args.height;
 
-        myargs[0].drawManager.options.height[0] = args.height;
-        myargs[0].drawManager.options.height[1] = args.height;
+        // TODO: Fix bug, when the height is changed, the height of mission planner is also changed
+        let height_input = document.getElementById('sideBar-left-missionPlanner-content-heightInput');
+        height_input.value = args.height;
     }
 
     // #endregion
@@ -458,6 +473,10 @@ class DrawManager {
      */
     _updateSpeedCallback(myargs, args) {
         myargs[0].drawManager.options.speed = args.speed;
+
+        // TODO: Fix bug, when the speed is changed, the speed of mission planner is also changed
+        let speed_input = document.getElementById('sideBar-left-missionPlanner-content-speedInput');
+        speed_input.value = args.speed;
     }
 
     // #endregion

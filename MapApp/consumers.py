@@ -65,9 +65,10 @@ class MissionManager(InfoManager):
     async def initialize(self):
         await super().initialize()
         await serverManager.addCallback('request', 'missionConfirm', self.on_confirm_mission)
-        await serverManager.addCallback('request', 'missionStart', self.on_start_mission)
-        await serverManager.addCallback('request', 'missionStop', self.on_mission_info)
-        await serverManager.addCallback('request', 'missionEnd', self.on_mission_info)
+        await serverManager.addCallback('request', 'missionPause', self.on_mission_status_request)
+        await serverManager.addCallback('request', 'missionResume', self.on_mission_status_request)
+        await serverManager.addCallback('request', 'missionStart', self.on_mission_status_request)
+        await serverManager.addCallback('request', 'missionStop', self.on_mission_status_request)
     
     async def on_mission_info(self, id, rol, msg):
         await serverManager.sendMessage(msg['from'], 1, msg)
@@ -79,9 +80,24 @@ class MissionManager(InfoManager):
             
         elif msg['payload']['status'] == 'confirmed' or msg['payload']['status'] == 'rejected':
             await serverManager.sendMessage(1, msg['to'], msg)
-            
-    async def on_start_mission(self, id, rol, msg):
-        await serverManager.sendMessage(msg['from'], 1, msg)
+    
+    async def on_mission_status_request(self, id, rol, msg):
+        print("on_pause_resume_mission")
+        print(msg)
+        if msg['payload']['status'] == 'request':
+            await serverManager.sendMessage(msg['from'], 1, msg)
+
+        elif msg['payload']['status'] == 'rejected':
+            await serverManager.sendMessage(1, msg['to'], msg)
+
+        elif msg['payload']['status'] == 'confirmed':
+            await serverManager.sendMessage(1, msg['to'], msg)
+
+        elif msg['payload']['status'] == 'running' or \
+             msg['payload']['status'] == 'paused' or \
+             msg['payload']['status'] == 'resumed' or \
+             msg['payload']['status'] == 'cancelled':
+            await serverManager.sendMessage(1, 'broadcast', msg)
 
 
 class ServerManager():

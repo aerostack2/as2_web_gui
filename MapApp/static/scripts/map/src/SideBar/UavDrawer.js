@@ -93,15 +93,27 @@ class UavDrawer {
         if (param in this.UAV_LIST.getDictById(uavId)) {
             switch (param) {
                 case 'pose':
-                    this.UAV_LIST.getDictById(uavId)['layerPose'].setLatLng([value['lat'], value['lng']]);
-                    this.UAV_LIST.getDictById(uavId)['layerPose'].options.rotationAngle = Utils.angleENU2NEU(value['yaw']);
+                    let coord_pose = Utils.deepCopy([value[0], value[1]]);
+                    if (M.USE_LOCAL_COORDINATES) {
+                        coord_pose = M.UTM.getLatLng(coord_pose);
+                    }
+                    this.UAV_LIST.getDictById(uavId)['layerPose'].setLatLng(coord_pose);
+                    this.UAV_LIST.getDictById(uavId)['layerPose'].options.rotationAngle = Utils.angleENU2NEU(value[3]);
                     this._updatePopup(uavId);
                     break;
                 case 'odom':
-                    this.UAV_LIST.getDictById(uavId)['layerOdom'].setLatLngs(value);
+                    let coord_odom = Utils.deepCopy(value);
+                    if (M.USE_LOCAL_COORDINATES) {
+                        coord_odom = M.UTM.getLatLngs(coord_odom);
+                    }
+                    this.UAV_LIST.getDictById(uavId)['layerOdom'].setLatLngs(coord_odom);
                     break;
                 case 'desiredPath':
-                    this.UAV_LIST.getDictById(uavId)['layerDesiredPath'].setLatLngs(value);
+                    let coord_path = Utils.deepCopy(value);
+                    if (M.USE_LOCAL_COORDINATES) {
+                        coord_path = M.UTM.getLatLngs(coord_path);
+                    }
+                    this.UAV_LIST.getDictById(uavId)['layerDesiredPath'].setLatLngs(coord_path);
                     break;
                 case 'state':
                     this.UAV_LIST.getDictById(uavId)['layerPose'].options['state'] = value;
@@ -115,7 +127,7 @@ class UavDrawer {
             switch (param) {
                 case 'pose':
                     this._checkLayer(uavId, 'layerPose');
-                    this.UAV_LIST.getDictById(uavId)['layerPose'] = this._uavMarker.codeDraw([value['lat'], value['lng']], {'uavList': [uavId]}, {'rotationAngle': Utils.angleENU2NEU(value['yaw'])}, desiredColor);
+                    this.UAV_LIST.getDictById(uavId)['layerPose'] = this._uavMarker.codeDraw([value[0], value[1]], {'uavList': [uavId]}, {'rotationAngle': Utils.angleENU2NEU(value[3])}, desiredColor);
                     this._updatePopup(uavId);
                     break;
                 case 'odom':
@@ -135,7 +147,7 @@ class UavDrawer {
                     let pose = M.UAV_MANAGER.getDictById(uavId)['pose'];
                     // this.UAV_LIST.getDictById(uavId)['pose'] = pose;
 
-                    this.UAV_LIST.getDictById(uavId)['layerPose'] = this._uavMarker.codeDraw([pose['lat'], pose['lng']], {'uavList': [uavId]}, undefined, desiredColor);
+                    this.UAV_LIST.getDictById(uavId)['layerPose'] = this._uavMarker.codeDraw([pose[0], pose[1]], {'uavList': [uavId]}, undefined, desiredColor);
                     this.UAV_LIST.getDictById(uavId)['layerPose'].options.drawManager.options['state'] = value;
                 default:
                     break;
@@ -154,8 +166,7 @@ class UavDrawer {
     _updatePopup(id) {
         var uavLayer = this.UAV_LIST.getDictById(id)['layerPose'];
         
-        let height = M.UAV_MANAGER.getDictById(id)['pose']['height'];
-        // console.log("Update popup: " + height);
+        let height = M.UAV_MANAGER.getDictById(id)['pose'][2];
         let popupContent = `<p>Height = ${Utils.round(height, 2)} m</p>`;
 
         if (uavLayer['popup'] == undefined) {
@@ -173,14 +184,10 @@ class UavDrawer {
             var callback = this._popupListenerCallback.bind(this);
 
             uavLayer['marker'].on('popupopen', function(e) {
-                // console.log('popupopen');
-                // console.log(id);
                 callback(id, true);
             });
 
             uavLayer['marker'].on('popupclose', function(e) {
-                // console.log('popupclose');
-                // console.log(id);
                 callback(id, false);
             });
 

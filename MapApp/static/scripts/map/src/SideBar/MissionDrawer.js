@@ -66,10 +66,6 @@ class MissionDrawer {
      * @access private
      */
     _missionConfirmCallback(myargs, args) {
-        // console.log("Mission confirmed");
-        // console.log(myargs);
-        // console.log(args);
-
         let missionId = args[0]['oldId'];
         let layers = M.DRAW_LAYERS.getList();
 
@@ -93,9 +89,6 @@ class MissionDrawer {
         let missionId = args[0];
         let missionDict = M.MISSION_MANAGER.getDictById(missionId);
 
-        // console.log("New mission callback");
-        // console.log(missionDict);
-
         for (let i = 0; i < missionDict.layers.length; i++) {
             let layer = missionDict.layers[i];
             let uavId = layer['uavList'][0];
@@ -103,19 +96,19 @@ class MissionDrawer {
 
             switch (layer.name) {
                 case 'TakeOffPoint':
-                    this._takeOffPoint.codeDraw([layer.values['lat'], layer.values['lng']], {'missionId': missionId}, undefined, desiredColor);
+                    this._takeOffPoint.codeDraw(layer.values, {'missionId': missionId}, undefined, desiredColor);
                     break;
                 case 'Path':
                     this._path.codeDraw(layer.values, {'missionId': missionId}, {'color': desiredColor[0]});
                     break;
                 case 'LandPoint':
-                    this._landPoint.codeDraw([layer.values.lat, layer.values.lng], {'missionId': missionId}, undefined, desiredColor);
+                    this._landPoint.codeDraw(layer.values, {'missionId': missionId}, undefined, desiredColor);
                     break;
                 case 'WayPoint':
-                    this._wayPoint.codeDraw([layer.values.lat, layer.values.lng], {'missionId': missionId}, undefined, desiredColor);
+                    this._wayPoint.codeDraw(layer.values, {'missionId': missionId}, undefined, desiredColor);
                     break;
                 case 'Area':
-                    this._area.codeDraw(layer.values[0], {'missionId': missionId}, {'opacity': 0.3, 'color': M.MISSION_MANAGER.getColors(missionId)[1]});
+                    this._area.codeDraw(layer.values, {'missionId': missionId}, {'opacity': 0.3, 'color': M.MISSION_MANAGER.getColors(missionId)[1]});
 
                     for (let j = 0; j < layer.uavList.length; j++) {
                         let uavId_aux = layer.uavList[j];

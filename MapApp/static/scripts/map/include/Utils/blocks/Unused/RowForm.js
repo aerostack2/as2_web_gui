@@ -22,11 +22,6 @@ class RowForm extends HTMLUtils
         for (let i = 0; i < content.list.length; i++) {
 
             if (content.list[i].type != 'button') {
-
-                console.log("RowForm for i = " + i);
-                console.log(content.list[i].attributes['class']);
-                
-
                 content.list[i].attributes['class'] += ' col-' + contentCol;
             }
             

@@ -27,6 +27,11 @@ class Utils {
      * @static
      */
     static callCallbacks(callbackList, ...args) {
+        if (!Array.isArray(callbackList)) {
+            console.log("Utils.callCallbacks - callbackList is not an array");
+            console.log(callbackList);
+            return;
+        }
         for (let i = 0; i < callbackList.length; i++) {
             callbackList[i][0](callbackList[i][1], args);
         }
@@ -289,7 +294,6 @@ class Utils {
                     callback(dataFromFileLoaded, args);
                     break;
             }
-
         };
 
         switch (type) {
@@ -378,19 +382,16 @@ class Utils {
 
     /**
      * Compute the distance between two points
-     * @param {number} x1 - X coordinate of the first point 
-     * @param {number} y1 - Y coordinate of the first point
-     * @param {number} x2 - X coordinate of the second point
-     * @param {number} y2 - Y coordinate of the second point
+     * @param {number} v1 - [X,Y] coordinate of the first point 
+     * @param {number} v2 - [X,Y] coordinate of the second point
      * @returns {number} - Distance between the two points
      * @access public
      * @static
      */
-    static distance(x1, y1, x2, y2) {
-
+    static distance(v1, v2) {
         // Euclidean distance
-        let x = x2 - x1;
-        let y = y2 - y1;
+        let x = v2[0] - v1[0];
+        let y = v2[1] - v1[1];
         return Math.sqrt(x * x + y * y);
     }
 
@@ -448,6 +449,10 @@ class Utils {
      * @static
      */
      static hasMember(dict, memberList) {
+        if (!Array.isArray(memberList)) {
+            memberList = [memberList];
+        }
+
         let currentDict = dict;
         for (let i = 0; i < memberList.length; i++) {
             if (currentDict == undefined) {
@@ -512,7 +517,7 @@ class Utils {
 
                     for (let k = 0; k < roundTable.length; k++) {
                         let roundRow = roundTable[k];
-                        if (roundRow[0] == element) {
+                        if (roundRow[0].toString() == element.toString()) {
                             infoElement = Utils.round(infoElement, roundRow[1]);
                         }
                     }

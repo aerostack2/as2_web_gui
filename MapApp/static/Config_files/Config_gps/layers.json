@@ -1,0 +1,39 @@
+{
+    "defaultFillColor": "#B3B3B3",
+    "defaultBorderColor": "#7F7F7F",
+    "Marker": {
+        "PointOfInterest": {
+            "parameters": []
+        },
+        "WayPoint": {
+            "parameters": []
+        },
+        "LandPoint": {
+            "parameters": []
+        },
+        "TakeOffPoint": {
+            "parameters": []
+        }
+    },
+    "Line": {
+        "Path": {
+            "parameters": []
+        }
+    },    
+    "Polygon": {
+        "Area": {
+            "parameters": [
+                ["list", "algorithm", "back_and_force", ["back_and_force"]],
+                ["number", "orientation", -1.0, "Set orientation (°)"],
+                ["number", "streetSpacing", 5.0, "Set street space (m)"],
+                ["number", "wpSpace", 10.0, "Set waypoint space (m)"]
+            ],
+            "sendParameters": [
+                "algorithm",
+                "orientation",
+                "streetSpacing",
+                "wpSpace"
+            ]
+        }
+    }
+}   

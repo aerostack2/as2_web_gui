@@ -14,4 +14,3 @@ var M = null;
  * @access public
  */
 var config = null;
-

@@ -1,9 +1,0 @@
-conda create -n AerostackUI python=3.8
-
-conda activate AerostackUI
-
-conda install -c anaconda django
-conda install -c conda-forge websocket-client
-python -m pip install -U channels
-
-python manage.py migrate

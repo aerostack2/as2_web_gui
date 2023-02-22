@@ -1,0 +1,50 @@
+{
+    "Home": {
+        "goToZoom": 20,
+        "UAVname": "UAV1"
+    },
+    "ImageOverlay": {
+        "opacity": 0.7,
+        "url": "https://raw.githubusercontent.com/cvar-upm/cvar-upm.github.io/main/logoHorizontal.png",
+        "icon": "/static/scripts/map/img/arrows-alt-solid.svg",
+        "topLeftCorner": [28.14422, -16.50366],
+        "topRightCorner": [28.14418, -16.50050],
+        "bottomLeftCorner": [28.14287, -16.50366]
+
+    },
+    "MissionPlanner": {
+        "defaultHeight": 2.0,
+        "defaultSpeed": 0.5
+    },
+    "MissionInfo": {
+        "infoTableHeader": ["Type", "Value"],
+        "infoTable": [
+            ["Id",   ["id"]],
+            ["Status", ["status"]]
+        ],
+        "roundTable": []
+    },
+    "UavInfo": {
+        "infoTableHeader": ["Group", "Type", "Value"],
+        "infoTable": [
+            ["Id",   ["id"]],
+            ["Info", "Connected",       ["state", "connected"]],
+            ["",     "Armed",           ["state", "armed"]],
+            ["",     "Offboard",        ["state", "offboard"]],
+            ["",     "State",           ["state", "state"]],
+            ["",     "Yaw mode",        ["state", "yaw_mode"]],
+            ["",     "Control mode",    ["state", "control_mode"]],
+            ["",     "Reference frame", ["state", "reference_frame"]],
+            ["Pose", "lat",             ["pose", [0]]],
+            ["",     "lng",             ["pose", [1]]],
+            ["",      "height",         ["pose", [2]]],
+            ["",      "yaw",            ["pose", [3]]]
+        ],
+        "roundTable": [
+            [["pose", [0]], 6],
+            [["pose", [1]], 6],
+            [["pose", [2]], 2],
+            [["pose", [3]], 2]
+        ]
+    }
+}

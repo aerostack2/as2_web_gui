@@ -27,7 +27,7 @@ class MissionPlanner {
          * @access private
          */
         this._selectedMission = 'New Mission';
-        
+
         /**
          * Dict with UAV id as keys and select status as values.
          * @type {dict}
@@ -40,7 +40,9 @@ class MissionPlanner {
          * @type {array}
          * @access private
          */
-        this._selectedHeight = [_configFile.defaultHeight, _configFile.defaultHeight];
+        this._selectedHeight = _configFile.defaultHeight;
+        // TODO: Enable height range
+        // this._selectedHeight = [_configFile.defaultHeight, _configFile.defaultHeight];
 
         /**
          * Selected speed.
@@ -58,8 +60,6 @@ class MissionPlanner {
         this._addPlannerHTML();
     }
 
-    
-
     // #region Planner
 
     /**
@@ -74,13 +74,11 @@ class MissionPlanner {
         let borderColor = config.Layers.defaultBorderColor;
 
         let layerOptions = {
-            'continueDrawing': false,
             'fillColor': fillColor,
             'borderColor': borderColor,
         }
 
         let layerOptions2 = {
-            'continueDrawing': false,
             'color': fillColor,
         }
 
@@ -103,7 +101,7 @@ class MissionPlanner {
          * @type {WayPoint}
          * @access private
          */
-        this._wayPoint = new WayPoint(status, undefined, Utils.deepCopyMergeDict(layerOptions, { 'continueDrawing': true }));
+        this._wayPoint = new WayPoint(status, undefined, Utils.deepCopyMergeDict(layerOptions, { 'continueDraw': true }));
 
         /**
          * Path manager.
@@ -140,7 +138,7 @@ class MissionPlanner {
 
 
         // Heigh input
-        let heightInput = HTMLUtils.addDict('input', `${this.htmlId}-heightInput`, { 'class': 'form-control', 'required': 'required', }, 'text', `${this._selectedHeight[1]}`);
+        let heightInput = HTMLUtils.addDict('input', `${this.htmlId}-heightInput`, { 'class': 'form-control', 'required': 'required', }, 'text', `${this._selectedHeight}`);
         let heightBtn = HTMLUtils.addDict('button', `${this.htmlId}-heightBtn`, { 'class': 'btn btn-primary' }, 'Set Height (m)');
         let heightRow = HTMLUtils.addDict('splitDivs', 'none', { 'class': 'row my-1 mx-1' }, [heightInput, heightBtn], { 'class': 'col-md-6' });
         mPlannerList.push(heightRow);
@@ -227,20 +225,42 @@ class MissionPlanner {
 
         Utils.addFileCallback(`${this.htmlId}-missionFile`, this._loadMissionCallback.bind(this));
 
-        // add listener to reset draw when press ESC key
-        document.addEventListener('keydown', function (e) {
-            switch (e.key) {
-                case 'Escape':
-                    //console.log('ESC pressed');
-                    DrawController.drawMouse();
-                    break;
-                default:
-                    break;
-            }
-        });
+        // Add event listener to keyboard events to draw on map
+        document.addEventListener('keydown', this.keyDownCallback.bind(this));
     }
 
     // #region Callbacks
+
+    /** 
+     * Callback for keyboard events.
+     * @param {object} e - Keyboard event.
+     * @returns {void}
+     * @access private
+     */
+    keyDownCallback(e) {
+        switch (e.key) {
+            case 'Escape':
+                DrawController.drawMouse();
+                break;
+            case 't':
+                this._takeOffPoint.userDraw({ 'height': this._selectedHeight, 'speed': this._selectedSpeed });
+                break;
+            case 'l':
+                this._landPoint.userDraw({ 'height': this._selectedHeight, 'speed': this._selectedSpeed });
+                break;
+            case 'w':
+                this._wayPoint.userDraw({ 'height': this._selectedHeight, 'speed': this._selectedSpeed });
+                break;
+            case 'p':
+                this._path.userDraw({ 'height': this._selectedHeight, 'speed': this._selectedSpeed });
+                break;
+            case 'a':
+                this._area.userDraw({ 'height': this._selectedHeight, 'speed': this._selectedSpeed });
+                break;
+            default:
+                break;
+        }
+    };
 
     /**
      * Callbacks for height and speed inputs. Set the value to the corresponding variable.
@@ -250,8 +270,11 @@ class MissionPlanner {
      * @access private
      */
     inputCallback(myargs, input) {
+        DrawController.drawMouse();
         if (myargs[0] == 'height') {
-            this._selectedHeight = [input.value, input.value];
+            // TODO: Enable height range
+            // this._selectedHeight = [input.value, input.value];
+            this._selectedHeight = input.value;
         } else if (myargs[0] == 'speed') {
             this._selectedSpeed = input.value;
         }
@@ -295,7 +318,7 @@ class MissionPlanner {
             this._initialized = true;
         }
     }
-    
+
     /**
      * Callback to new UAV added.
      * @param {array} myargs - List of arguments passed to the callback.
@@ -322,7 +345,6 @@ class MissionPlanner {
         mConfirmList.push(HTMLUtils.initDropDown(`${this.htmlId}-MissionList`, missionListTotal, 'New Mission'));
 
         // UAV picker
-        // let list = [['none', false], ['auto', true]];
         let list = [['none', false]];
         let uavPickerList = M.getUavPickerDict('checkbox', `${this.htmlId}-UAVPicker`, list, this._clickUavListCallback.bind(this));
 
@@ -422,13 +444,26 @@ class MissionPlanner {
                 'options': drawManager.options,
                 'values': []
             };
-
+            let values = [];
             if (layer._latlng) {
-                saveInfo[i]['values'] = layer._latlng;
+                values = [layer._latlng.lat, layer._latlng.lng];
+                if (M.USE_LOCAL_COORDINATES) {
+                    values = M.UTM.getLocalUTM(values);
+                }
             } else if (layer._latlngs) {
-                saveInfo[i]['values'] = layer._latlngs;
+                let layer_values = layer._latlngs;
+                if (layer_values[0].length >= 3) {
+                    layer_values = layer._latlngs[0];
+                }
+                for (let j = 0; j < layer_values.length; j++) {
+                    let coord = [layer_values[j].lat, layer_values[j].lng];
+                    if (M.USE_LOCAL_COORDINATES) {
+                        coord = M.UTM.getLocalUTM(coord);
+                    }
+                    values.push(coord);
+                }
             }
-
+            saveInfo[i]['values'] = values;
         }
 
         if (Object.keys(saveInfo).length > 0) {
@@ -481,7 +516,6 @@ class MissionPlanner {
                             break;
                         default:
                             throw new Error(`Unknown marker type ${options.name}`);
-                            break;
                     }
                     break;
                 case 'Polyline':
@@ -504,7 +538,6 @@ class MissionPlanner {
                     break;
                 default:
                     throw new Error(`Unknown type ${options.name}`);
-                    break;
             }
         }
 
@@ -516,17 +549,28 @@ class MissionPlanner {
     // #region Mission process
 
     missionInterpreterTakeOffPoint(layerInfo, missionLayer, selectedUavListTakeOff, validation, info) {
-        let minDistance = Math.pow(10, -6);
+        let minDistance = Math.pow(10, -4);
+
+        if (selectedUavListTakeOff.length == 0) {
+            validation = false;
+            info.push(`TakeOff with no UAV available`);
+            return;
+        } else if (selectedUavListTakeOff.length == 1) {
+            missionLayer['uavList'].push(selectedUavListTakeOff[0]);
+            // Remove the selected UAV from the list
+            selectedUavListTakeOff.splice(0, 1);
+            return;
+        }
 
         let takeOffPosition = layerInfo.layer.getLatLng();
+        takeOffPosition = [takeOffPosition.lat, takeOffPosition.lng];
+        if (M.USE_LOCAL_COORDINATES) {
+            takeOffPosition = M.UTM.getLocalUTM(takeOffPosition);
+        }
+
         for (let j = 0; j < selectedUavListTakeOff.length; j++) {
             let pose = M.UAV_MANAGER.getDictById(selectedUavListTakeOff[j]).pose;
-            let distance = Utils.distance(
-                takeOffPosition.lat,
-                takeOffPosition.lng,
-                pose.lat,
-                pose.lng
-            );
+            let distance = Utils.distance(takeOffPosition, [pose[0], pose[1]]);
 
             if (distance < minDistance) {
 
@@ -607,8 +651,6 @@ class MissionPlanner {
         }
     }
 
-
-
     missionInterpreter() {
 
         let selectedUavList = [];
@@ -660,31 +702,55 @@ class MissionPlanner {
                     this.missionInterpreterArea(layerInfo, missionLayer, selectedUavList, validation, info);
                     break;
                 default:
-                    console.log('Unknown drawManager layer name');
-                    console.log(drawManagerInfo.name);
+                    info.push(`Unknown drawManager layer name: ${drawManagerInfo.name}`);
+                    validation = false;
                     break;
             }
 
-
             // Layer coordinates values
+            let coordinates = [];
             switch (drawManagerInfo.type) {
                 case 'Marker':
-                    missionLayer['values'] = layer._latlng;
+                    if (M.USE_LOCAL_COORDINATES) {
+                        coordinates = M.UTM.getLocalUTM([layer._latlng.lat, layer._latlng.lng]);
+                    } else {
+                        coordinates = [layer._latlng.lat, layer._latlng.lng];
+                    }
                     break;
                 case 'Circle':
                 case 'CircleMarker':
-                    missionLayer['values'] = [layer._latlng, layer._mRadius];
+                    if (M.USE_LOCAL_COORDINATES) {
+                        coordinates = M.UTM.getLocalUTM([layer._latlng.lat, layer._latlng.lng]);
+                        coordinates.push(layer._mRadius);
+                    } else {
+                        coordinates = [layer._latlng.lat, layer._latlng.lng, layer._mRadius];
+                    }
                     break;
                 case 'Polyline':
+                    for (let j = 0; j < layer._latlngs.length; j++) {
+                        if (M.USE_LOCAL_COORDINATES) {
+                            coordinates.push(M.UTM.getLocalUTM([layer._latlngs[j].lat, layer._latlngs[j].lng]));
+                        } else {
+                            coordinates.push([layer._latlngs[j].lat, layer._latlngs[j].lng]);
+                        }
+                    }
+                    break;
                 case 'Polygon':
                 case 'Rectangle':
-                    missionLayer['values'] = layer._latlngs;
+                    for (let j = 0; j < layer._latlngs[0].length; j++) {
+                        if (M.USE_LOCAL_COORDINATES) {
+                            coordinates.push(M.UTM.getLocalUTM([layer._latlngs[0][j].lat, layer._latlngs[0][j].lng]));
+                        } else {
+                            coordinates.push([layer._latlngs[0][j].lat, layer._latlngs[0][j].lng]);
+                        }
+                    }
                     break;
                 default:
-                    console.log('Unknown drawManager layer type');
-                    console.log(drawManagerInfo.type);
+                    info.push(`Unknown drawManager layer type: ${drawManagerInfo.type}`);
+                    validation = false;
                     break;
             }
+            missionLayer['values'] = coordinates;
 
             // Add mission to all mission list. If validation is false, stop mission creation
             mission.push(missionLayer);

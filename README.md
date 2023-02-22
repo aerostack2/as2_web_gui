@@ -1,26 +1,36 @@
 # AerostackUI
 
-Clone repository:
-```
-cd ${AEROSTACK2_PATH}/stack/user_interface/
-https://github.com/aerostack2-developers/AerostackUI.git
-```
-
 Install dependencies:
 ```
-cd ${AEROSTACK2_PATH}/stack/user_interface/AerostackUI
-chmod +x install_dependencies.bash
-./install_dependencies.bash
+pip install -r requirements.txt
 ```
 
-Run webpage user interface at http://127.0.0.1:8000/interface/map/:
+# Run webpage user interface:
 ```
-cd ${AEROSTACK2_PATH}/stack/user_interface/AerostackUI
-python manage.py runserver
+python3 manage.py runserver
+```
+
+# Run server and aerostack2 interface using GPS
+Open webpage:
+```
+http://127.0.0.1:8000/interface/map/use_local_coordinates=False/
 ```
 
 Run Aerostack communication:
 ```
-cd ${AEROSTACK2_PATH}/stack/user_interface/AerostackUI/ROS
-python AerostackUI.py
+python3 as2_interface.py --uav_list drone0 drone1
 ```
+
+
+# Run server and aerostack2 interface using cartesian coordinates
+Open webpage:
+```
+http://127.0.0.1:8000/interface/map/use_local_coordinates=False/
+```
+
+Run Aerostack communication:
+```
+python3 as2_interface.py --uav_list drone0 drone1 --use_cartesian_coordinates true
+```
+
+
