@@ -25,7 +25,7 @@ python3 as2_interface.py --uav_list drone0 drone1
 # Run server and aerostack2 interface using cartesian coordinates
 Open webpage:
 ```
-http://127.0.0.1:8000/interface/map/use_local_coordinates=False/
+http://127.0.0.1:8000/interface/map/use_local_coordinates=True/
 ```
 
 Run Aerostack communication:
