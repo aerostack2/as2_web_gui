@@ -20,7 +20,7 @@ from AerostackUI.websocket_interface import WebSocketClientInterface
 from AerostackUI.aerostack_ui_logger import AerostackUILogger
 
 
-VIRTUAL_MODE = True
+VIRTUAL_MODE = False
 
 
 class UavInterface(DroneInterfaceBase, threading.Thread):

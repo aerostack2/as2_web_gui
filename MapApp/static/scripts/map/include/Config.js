@@ -61,8 +61,8 @@ class Config {
 
     _onLoadGlobalConfigFile() {
         let localBasePath = '/static/Config_files/Config_gps/';
-        if (window.location.href.split("use_local_coordinates")[1].split("/")[0] == "=True") {
-            localBasePath = '/static/Config_files/Config_local/';
+        if (window.location.href.split("use_cartesian")[1].split("/")[0] == "=True") {
+            localBasePath = '/static/Config_files/Config_cartesian/';
         }
         let localConfig = 'local_config.json';
 

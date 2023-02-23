@@ -8,4 +8,4 @@ from django.template.response import TemplateResponse
 # def map(request):
 #     return render(request, 'map.html')
 def map(request, flag="false"):
-    return render(request, 'map.html', {'use_local_coordinates': flag})
+    return render(request, 'map.html', {'use_cartesian': flag})

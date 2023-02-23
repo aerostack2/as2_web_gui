@@ -379,26 +379,23 @@ class MissionManager():
         # Analize result
         result_rejected = False
         result_reason = []
-        result_send = {}
         for uav in result:
-            result_send[uav] = {}
             for behavior in result[uav]:
-                result_send[uav][behavior.value] = result[uav][behavior]
-                if result_send[uav][behavior.value] != True:
+                if not result[uav][behavior]:
+                    result_rejected = True
+                    result_reason.append(f"{uav} {behavior} could not be change to \
+                        {desired_status}")
                     self.logger.debug(
                         "MissionManager",
                         "change_mission_status_callback",
                         f"Error changing mission status: {result}")
-                    result_rejected = True
-                    result_reason.append(f"{uav} {behavior.value} could not be change to \
-                        {desired_status}")
 
         self.client.request_messages.mission_status(
             msg['header'],
             msg['payload']['id'],
             'rejected' if result_rejected else status,
             msg['from'],
-            result_send)
+            result_reason)
 
         self.logger.debug(
             "MissionManager",
