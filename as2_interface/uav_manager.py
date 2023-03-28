@@ -215,7 +215,6 @@ class UavInterface(DroneInterfaceBase, threading.Thread):
                     "UavInterface",
                     "run_uav_mission",
                     f"UAV {self.drone_id}. Follow path {waypoint} and speed {speed}")
-                # self.follow_path(waypoints, speed, self._yaw_mode.mode, self._yaw_mode.angle)
                 for waypoint in waypoints:
                     self.go_to(*waypoint, speed, self._yaw_mode.mode,
                               self._yaw_mode.angle)

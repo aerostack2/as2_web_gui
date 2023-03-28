@@ -152,7 +152,6 @@ class MissionInterpreter():
                     'initial_position': last_position[uav],
                     'last_position': next_position[uav]}
 
-            print("Algorithm: ", algorithm)
             area = []
             for point in values:
                 area.append([point[0], point[1], height])
@@ -177,8 +176,6 @@ class MissionInterpreter():
                     float(wp_space),
                     theta,
                     filter_path_waypoints=True)
-
-            print("UAVS PATH: ", uavs_path)
 
             area_path = {}
             for uav_path, uav in zip(uavs_path, uav_list_aux):
@@ -223,9 +220,9 @@ class MissionInterpreter():
                     last_position_list[uav] = last_position[uav]
                     last_position_flag[uav] = True        
 
-            for uav in last_position_flag:
-                if not last_position_flag[uav]:
-                    raise Exception("Next position for UAV not found")
+        for uav in last_position_flag:
+            if not last_position_flag[uav]:
+                raise Exception("Next position for UAV not found")
 
         return last_position_list
 

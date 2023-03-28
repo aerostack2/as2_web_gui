@@ -1,4 +1,4 @@
-# AerostackUI
+# Aerostack2 Web-GUI
 
 ## Requirements
 Install dependencies:
@@ -6,12 +6,12 @@ Install dependencies:
 pip install -r requirements.txt
 ```
 
-## Run webpage user interface
+## Run Aerostack2 Graphical User Interface server
 ```
 python3 manage.py runserver
 ```
 
-## Run server and aerostack2 interface using GPS
+## Open Webpage and aerostack2 interface using GPS
 Open webpage:
 ```
 http://127.0.0.1:8000/interface/map/use_cartesian=False/
@@ -24,11 +24,11 @@ python3 as2_interface.py --uav_list drone0 drone1
 
 If simulation mode, run:
 ```
-python3 as2_interface.py --uav_list drone0 drone1 --simulation_mode true --use_sim_time true
+python3 as2_interface.py --uav_list drone0 drone1 --sim_mode true --use_sim_time true
 ```
 
 
-## Run server and aerostack2 interface using cartesian coordinates
+## Open Webpage and aerostack2 interface using using cartesian coordinates
 Open webpage:
 ```
 http://127.0.0.1:8000/interface/map/use_cartesian=True/
@@ -41,10 +41,10 @@ python3 as2_interface.py --uav_list drone0 drone1 --use_cartesian_coordinates tr
 
 If simulation mode, run:
 ```
-python3 as2_interface.py --uav_list drone0 drone1 --simulation_mode true --use_sim_time true
+python3 as2_interface.py --uav_list drone0 drone1 --use_cartesian_coordinates true --sim_mode true --use_sim_time true
 ```
 
-## Config Web Interface
+## Config Aerostack2 Graphical User Interface server
 In `MapApp/static/Config_files` user web interface parameters can be configured.
 
 In `Config/` the following parameters can be configured:

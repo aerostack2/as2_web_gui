@@ -6,4 +6,3 @@ Django==4.0.4
 websockets
 websocket-client
 channels==3.0.4
-attrs
