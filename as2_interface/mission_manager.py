@@ -17,7 +17,8 @@ class MissionInterpreter():
     @staticmethod
     def interpreter(msg: dict, logger: AerostackUILogger) -> dict:
         """ Mission interpreter """
-        logger.debug("MissionManager", "interpreter", f"Interpreting mission: {msg}")
+        logger.debug("MissionManager", "interpreter",
+                     f"Interpreting mission: {msg}")
 
         if msg['payload']['status'] != 'request':
             message_info = f"Invalid mission status: \
@@ -218,7 +219,7 @@ class MissionInterpreter():
             for uav in last_position:
                 if last_position_flag[uav] == False:
                     last_position_list[uav] = last_position[uav]
-                    last_position_flag[uav] = True        
+                    last_position_flag[uav] = True
 
         for uav in last_position_flag:
             if not last_position_flag[uav]:
@@ -248,8 +249,10 @@ class MissionManager():
 
         self.client.add_msg_callback(
             'request', 'missionConfirm', self.mission_confirm_callback)
+        # self.client.add_msg_callback(
+        #     'request', 'missionStart', self.start_mission_callback)
         self.client.add_msg_callback(
-            'request', 'missionStart', self.start_mission_callback)
+            'request', 'missionStart', self.change_mission_status_callback, 'start')
         self.client.add_msg_callback(
             'request', 'missionPause', self.change_mission_status_callback, 'pause')
         self.client.add_msg_callback(
@@ -297,53 +300,58 @@ class MissionManager():
             self.client.info_messages.send_mission_info(mission_planner_msg)
             self.mission_list[self.mission_id] = mission
 
+            for uav in mission:
+                drone_interface = self.uav_manager.drones_interfaces[uav]
+                if drone_interface is None:
+                    continue
+                drone_interface.load_mission(self.mission_id, mission[uav])
             self.mission_id += 1
 
-    def start_mission_callback(self, msg: dict, args):
-        """ Start mission callback """
-        self.logger.debug(
-            "MissionManager",
-            "mission_confirm_callback",
-            f"Received starting mission message: {msg}")
+    # def start_mission_callback(self, msg: dict, args):
+    #     """ Start mission callback """
+    #     self.logger.debug(
+    #         "MissionManager",
+    #         "mission_confirm_callback",
+    #         f"Received starting mission message: {msg}")
 
-        mission_id = msg['payload']['id']
-        mission_list = self.mission_list[mission_id]
+    #     mission_id = msg['payload']['id']
+    #     mission_list = self.mission_list[mission_id]
 
-        for uav in mission_list:
-            drone_interface = self.uav_manager.drones_interfaces[uav]
+    #     for uav in mission_list:
+    #         drone_interface = self.uav_manager.drones_interfaces[uav]
 
-            if drone_interface is None:
-                continue
+    #         if drone_interface is None:
+    #             continue
 
-            if drone_interface.is_alive():
-                self.logger.error(
-                    "MissionManager",
-                    "mission_confirm_callback",
-                    f"Drone {uav} is already running a mission")
-                continue
+    #         if drone_interface.is_alive():
+    #             self.logger.error(
+    #                 "MissionManager",
+    #                 "mission_confirm_callback",
+    #                 f"Drone {uav} is already running a mission")
+    #             continue
 
-            self.uav_mission_run_threads[uav] = drone_interface
-            drone_interface.start_mission(mission_list[uav])
+    #         self.uav_mission_run_threads[uav] = drone_interface
+    #         drone_interface.start_mission(mission_list[uav])
 
-        self.mission_status[self.mission_id] = 'running'
-        self.client.info_messages.send_mission_info({
-            'id': mission_id,
-            'status': self.mission_status[self.mission_id]})
+    #     self.mission_status[self.mission_id] = 'running'
+    #     self.client.info_messages.send_mission_info({
+    #         'id': mission_id,
+    #         'status': self.mission_status[self.mission_id]})
 
-        # Wait for all missions to finish
-        for uav in self.uav_mission_run_threads:
-            self.uav_mission_run_threads[uav].join()
+    #     # Wait for all missions to finish
+    #     for uav in self.uav_mission_run_threads:
+    #         self.uav_mission_run_threads[uav].join()
 
-        if self.mission_list[mission_id] == 'running':
-            self.mission_status[self.mission_id] = 'finished'
-            self.client.info_messages.send_mission_info({
-                'id': mission_id,
-                'status': self.mission_status[self.mission_id]})
+    #     if self.mission_list[mission_id] == 'running':
+    #         self.mission_status[self.mission_id] = 'finished'
+    #         self.client.info_messages.send_mission_info({
+    #             'id': mission_id,
+    #             'status': self.mission_status[self.mission_id]})
 
-            self.logger.debug(
-                "MissionManager",
-                "mission_confirm_callback",
-                f"Mission {mission_id} finished")
+    #         self.logger.debug(
+    #             "MissionManager",
+    #             "mission_confirm_callback",
+    #             f"Mission {mission_id} finished")
 
     def change_mission_status_callback(self, msg: dict, args):
         """ Start mission callback """
@@ -355,9 +363,12 @@ class MissionManager():
         mission_id = msg['payload']['id']
         uav_list = self.mission_list[mission_id].keys()
         status = ""
-        result = None
+        # result = None
         desired_status = str(args[0])
-        if desired_status == 'pause':
+        if desired_status == 'start':
+            result = self.uav_manager.start_mission(uav_list, mission_id)
+            status = 'running'
+        elif desired_status == 'pause':
             result = self.uav_manager.pause_mission(uav_list)
             status = 'paused'
         elif desired_status == 'resume':
@@ -374,32 +385,39 @@ class MissionManager():
             return
 
         # Analize result
-        result_rejected = False
-        result_reason = []
-        for uav in result:
-            for behavior in result[uav]:
-                if not result[uav][behavior]:
-                    result_rejected = True
-                    result_reason.append(f"{uav} {behavior} could not be change to \
-                        {desired_status}")
-                    self.logger.debug(
-                        "MissionManager",
-                        "change_mission_status_callback",
-                        f"Error changing mission status: {result}")
+        # result_rejected = False
+        # result_reason = []
+        # for uav in result:
+        #     for behavior in result[uav]:
+        #         if not result[uav][behavior]:
+        #             result_rejected = True
+        #             result_reason.append(f"{uav} {behavior} could not be change to \
+        #                 {desired_status}")
+        #             self.logger.debug(
+        #                 "MissionManager",
+        #                 "change_mission_status_callback",
+        #                 f"Error changing mission status: {result}")
+
+        # self.client.request_messages.mission_status(
+        #     msg['header'],
+        #     msg['payload']['id'],
+        #     'rejected' if result_rejected else status,
+        #     msg['from'],
+        #     result_reason)
 
         self.client.request_messages.mission_status(
             msg['header'],
             msg['payload']['id'],
-            'rejected' if result_rejected else status,
+            status,
             msg['from'],
-            result_reason)
+            [])
 
-        self.logger.debug(
-            "MissionManager",
-            "change_mission_status_callback",
-            f"Mission {mission_id} status changed to {status}")
+        # self.logger.debug(
+        #     "MissionManager",
+        #     "change_mission_status_callback",
+        #     f"Mission {mission_id} status changed to {status}")
 
-        self.mission_status[mission_id] = status
-        self.client.info_messages.send_mission_info({
-            'id': mission_id,
-            'status': self.mission_status[mission_id] })
+        # self.mission_status[mission_id] = status
+        # self.client.info_messages.send_mission_info({
+        #     'id': mission_id,
+        #     'status': self.mission_status[mission_id]})
