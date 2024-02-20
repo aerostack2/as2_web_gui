@@ -44,16 +44,18 @@ class UavInterface(DroneInterfaceBase):
                                         drone_id=drone_id,
                                         verbose=verbose,
                                         use_sim_time=use_sim_time)
-            self.land = LandModule(drone=self)
-            self.takeoff = TakeoffModule(drone=self)
+            # self.land = LandModule(drone=self)
+            # self.takeoff = TakeoffModule(drone=self)
 
-            if self.use_cartesian_coordinates:
-                self.go_to = GoToModule(drone=self)
-                self.follow_path = FollowPathModule(drone=self)
-            else:
+            # if self.use_cartesian_coordinates:
+            #     self.go_to = GoToModule(drone=self)
+            #     self.follow_path = FollowPathModule(drone=self)
+            # else:
+            #     self.gps = GpsModule(drone=self)
+            #     self.go_to = GoToGpsModule(drone=self)
+            #     self.follow_path = FollowPathGpsModule(drone=self)
+            if not self.use_cartesian_coordinates:
                 self.gps = GpsModule(drone=self)
-                self.go_to = GoToGpsModule(drone=self)
-                self.follow_path = FollowPathGpsModule(drone=self)
 
         else:
             self.drone_id_aux = drone_id
@@ -158,9 +160,19 @@ class UavInterface(DroneInterfaceBase):
             return self.__virtual_mission_status_change()
         # return DroneBehaviorManager.stop_all_behaviors(self)
 
+        mission = Mission(target=self.namespace, verbose=True)
+        mission.plan.append(MissionItem(behavior='rtl', args={
+            'height': 15.0,
+            'speed': 1.0,
+            'land_speed': 0.5,
+            'wait': True
+        }))
+
         mission_update = MissionUpdate()
         mission_update.drone_id = self.namespace
         mission_update.action = MissionUpdate.LOAD
+        mission_update.mission_id = 10
+        mission_update.mission = mission.json()
 
         # Publish the mission
         self.mission_update_pub.publish(mission_update)
