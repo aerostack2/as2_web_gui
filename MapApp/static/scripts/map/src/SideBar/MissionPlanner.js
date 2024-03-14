@@ -617,7 +617,15 @@ class MissionPlanner {
 
     missionInterpreterArea(layerInfo, missionLayer, selectedUavList, validation, info) {
 
-        let uavList = Object.keys(layerInfo.drawManager.options.uavList);
+        let uavListLeys = Object.keys(layerInfo.drawManager.options.uavList);
+
+        // If value is True, add to the list
+        let uavList = [];
+        for (let i = 0; i < uavListLeys.length; i++) {
+            if (layerInfo.drawManager.options.uavList[uavListLeys[i]]) {
+                uavList.push(uavListLeys[i]);
+            }
+        }
 
         if (uavList.length > 2 && uavList.includes('auto')) {
             validation = false;
@@ -637,7 +645,7 @@ class MissionPlanner {
                     missionLayer['uavList'].push(uavList[j]);
                 } else {
                     validation = false;
-                    info.push(`${layerInfo.drawManager.options.name} layer has error with UAV selected. UAV associated to this layer is not selected`);
+                    info.push(`${layerInfo.drawManager.options.name} layer has error with UAV selected. UAV ${uavList[j]} associated to this layer is not selected`);
                     return;
                 }
             }

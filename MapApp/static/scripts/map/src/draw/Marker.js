@@ -161,7 +161,7 @@ class Marker extends DrawManager {
       if (M.USE_LOCAL_COORDINATES) {
          inputs = M.UTM.getLatLng(inputs);
       }
-      layer.setLatLng(L.latLng(inputs));
+      layer.setLatLng({ lat: inputs.x, lng: inputs.y });
    }
 
    // #endregion
