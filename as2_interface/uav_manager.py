@@ -4,6 +4,7 @@ uav_interface.py
 
 import threading
 import json
+from math import tan ,radians
 from time import sleep
 from typing import Callable
 from rclpy.qos import qos_profile_system_default, QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
@@ -25,7 +26,10 @@ from AerostackUI.websocket_interface import WebSocketClientInterface
 from AerostackUI.aerostack_ui_logger import AerostackUILogger
 
 
-VIRTUAL_MODE = False
+VIRTUAL_MODE = True
+GPS_COORDINATES = [40.337236, -3.886678, 0.01]
+YAW_ANGLE = radians(135.0) # 135.0º
+GIMBAL_ANGLE = -60.0
 
 
 class UavInterface(DroneInterfaceBase):
@@ -44,16 +48,6 @@ class UavInterface(DroneInterfaceBase):
                                         drone_id=drone_id,
                                         verbose=verbose,
                                         use_sim_time=use_sim_time)
-            # self.land = LandModule(drone=self)
-            # self.takeoff = TakeoffModule(drone=self)
-
-            # if self.use_cartesian_coordinates:
-            #     self.go_to = GoToModule(drone=self)
-            #     self.follow_path = FollowPathModule(drone=self)
-            # else:
-            #     self.gps = GpsModule(drone=self)
-            #     self.go_to = GoToGpsModule(drone=self)
-            #     self.follow_path = FollowPathGpsModule(drone=self)
             if not self.use_cartesian_coordinates:
                 self.gps = GpsModule(drone=self)
 
@@ -62,22 +56,23 @@ class UavInterface(DroneInterfaceBase):
 
         self._sim_mode = sim_mode
         self._yaw_mode = YawMode()
-        self._yaw_mode.mode = YawMode.PATH_FACING
-        self._yaw_mode.angle = 0.0
+        self._yaw_mode.mode = YawMode.FIXED_YAW
+        self._yaw_mode.angle = YAW_ANGLE
 
         # ROS 2 Mission interpreter
-        qos_profile = QoSProfile(
-            reliability=QoSReliabilityPolicy.RELIABLE,
-            history=QoSHistoryPolicy.KEEP_LAST,
-            depth=1
-        )
+        if not VIRTUAL_MODE:
+            qos_profile = QoSProfile(
+                reliability=QoSReliabilityPolicy.RELIABLE,
+                history=QoSHistoryPolicy.KEEP_LAST,
+                depth=1
+            )
 
-        self.mission_update_pub = self.create_publisher(
-            MissionUpdate, 'mission_update', qos_profile_system_default)
+            self.mission_update_pub = self.create_publisher(
+                MissionUpdate, 'mission_update', qos_profile_system_default)
 
-        self.mission_status_sub = self.create_subscription(
-            String, 'mission_status', self.mission_status_callback,
-            qos_profile)
+            self.mission_status_sub = self.create_subscription(
+                String, 'mission_status', self.mission_status_callback,
+                qos_profile)
 
         self.missions = {}
         self.mission_status = "IDLE"
@@ -163,8 +158,8 @@ class UavInterface(DroneInterfaceBase):
         mission = Mission(target=self.namespace, verbose=True)
         mission.plan.append(MissionItem(behavior='rtl', args={
             'height': 15.0,
-            'speed': 1.0,
-            'land_speed': 0.5,
+            'speed': 3.0,
+            'land_speed': 1.0,
             'wait': True
         }))
 
@@ -191,6 +186,26 @@ class UavInterface(DroneInterfaceBase):
                     'height': element['values'][0][2], 'speed': speed, 'wait': True
                 }))
 
+                waypoint = [
+                    element['values'][0][0],
+                    element['values'][0][1],
+                    element['values'][0][2]
+                ]
+                mission.plan.append(MissionItem(behavior='go_to_gps', args={
+                    'lat': waypoint[0], 'lon': waypoint[1], 'alt': waypoint[2],
+                    'speed': speed, 'yaw_mode': self._yaw_mode.mode,
+                    'yaw_angle': self._yaw_mode.angle, 'wait': True
+                }))
+                if GIMBAL_ANGLE != 0.0:
+                    x = 1.0
+                    z = x * tan(radians(GIMBAL_ANGLE))
+                    mission.plan.append(MissionItem(
+                        behavior='point_gimbal',
+                        args={
+                            '_x': x, '_y': 0.0, '_z': z, 'frame_id': f"{self.namespace}/base_link",
+                            'wait': True
+                    }))
+
             elif element['name'] == 'LandPoint':
                 waypoint = [
                     element['values'][0][0],
@@ -202,6 +217,14 @@ class UavInterface(DroneInterfaceBase):
                     'speed': speed, 'yaw_mode': self._yaw_mode.mode,
                     'yaw_angle': self._yaw_mode.angle, 'wait': True
                 }))
+                if GIMBAL_ANGLE != 0.0:
+                    mission.plan.append(MissionItem(
+                        behavior='point_gimbal',
+                        args={
+                            '_x': 1.0, '_y': 0.0, '_z': 0.0,
+                            'frame_id': f"{self.namespace}/base_link",
+                            'wait': True
+                    }))
                 mission.plan.append(MissionItem(
                     behavior='land', args={'speed': speed}))
 
@@ -233,10 +256,6 @@ class UavInterface(DroneInterfaceBase):
 
             elif element['name'] == 'Area':
                 waypoints = element['values']
-                # mission.plan.append(MissionItem(behavior='follow_path', args={
-                #     'path': waypoints, 'speed': speed, 'yaw_mode': self._yaw_mode.mode,
-                #     'yaw_angle': self._yaw_mode.angle, 'frame_id': 'earth', 'wait': True
-                # }))
                 mission.plan.append(MissionItem(behavior='follow_path_gps', args={
                     'geopath': waypoints, 'speed': speed, 'yaw_mode': self._yaw_mode.mode,
                     'yaw_angle': self._yaw_mode.angle, 'wait': True
@@ -265,136 +284,6 @@ class UavInterface(DroneInterfaceBase):
         # Check if dict has the key 'id' and 'status'
         if 'id' in dict_data and 'status' in dict_data:
             self.missions[dict_data['id']] = dict_data['status']
-
-    # def run(self):
-    #     """ Run UAV mission thread """
-    #     if VIRTUAL_MODE:
-    #         for element in self._mission:
-    #             if self._stop_event.is_set():
-    #                 self.logger.info(
-    #                     "UavInterface",
-    #                     "run_uav_mission",
-    #                     f"UAV {self.drone_id_aux}. Mission stopped")
-    #                 return
-    #             self.logger.info(
-    #                 "UavInterface",
-    #                 "run_uav_mission",
-    #                 f"UAV {self.drone_id_aux}. Mission element: {element}")
-    #             sleep(5.0)
-
-    #     self.logger.debug(
-    #         "UavInterface",
-    #         "run_uav_mission",
-    #         f"UAV {self.drone_id}. Running mission: {self._mission}")
-
-    #     if self._sim_mode:
-    #         self.logger.debug(
-    #             "UavInterface",
-    #             "run_uav_mission",
-    #             f"UAV {self.drone_id}. Sim mode, arming")
-    #         self.arm()
-    #         self.logger.debug(
-    #             "UavInterface",
-    #             "run_uav_mission",
-    #             f"UAV {self.drone_id}. Sim mode, offboard")
-    #         self.offboard()
-
-    #     for element in self._mission:
-    #         if self._stop_event.is_set():
-    #             self.logger.info(
-    #                 "UavInterface",
-    #                 "run_uav_mission",
-    #                 f"UAV {self.drone_id}. Mission stopped")
-    #             return
-
-    #         speed = float(element['speed'])
-
-    #         if element['name'] == 'TakeOffPoint':
-    #             self.logger.info(
-    #                 "UavInterface",
-    #                 "run_uav_mission",
-    #                 f"UAV {self.drone_id}. Takeoff height {element['values'][0][2]} \
-    #                     and speed {speed}")
-    #             self.takeoff(height=element['values'][0][2], speed=speed)
-
-    #             waypoint = [
-    #                 element['values'][0][0],
-    #                 element['values'][0][1],
-    #                 element['values'][0][2]
-    #             ]
-
-    #         elif element['name'] == 'LandPoint':
-    #             waypoint = [
-    #                 element['values'][0][0],
-    #                 element['values'][0][1],
-    #                 element['values'][0][2]
-    #             ]
-
-    #             self.logger.info(
-    #                 "UavInterface",
-    #                 "run_uav_mission",
-    #                 f"UAV {self.drone_id}. Land point {waypoint} and speed {speed}")
-    #             self.go_to(*waypoint, speed, self._yaw_mode.mode,
-    #                        self._yaw_mode.angle)
-
-    #             self.logger.info(
-    #                 "UavInterface",
-    #                 "run_uav_mission",
-    #                 f"UAV {self.drone_id}. Land at speed {speed}")
-    #             self.land()
-    #             self.logger.info(
-    #                 "UavInterface",
-    #                 "run_uav_mission",
-    #                 f"UAV {self.drone_id}. Landed")
-
-    #         elif element['name'] == 'Path':
-    #             waypoints = element['values']
-
-    #             self.logger.info(
-    #                 "UavInterface",
-    #                 "run_uav_mission",
-    #                 f"UAV {self.drone_id}. Follow path {waypoint} and speed {speed}")
-    #             for waypoint in waypoints:
-    #                 self.go_to(*waypoint, speed, self._yaw_mode.mode,
-    #                            self._yaw_mode.angle)
-
-    #         elif element['name'] == 'WayPoint':
-    #             waypoint = [
-    #                 element['values'][0][0],
-    #                 element['values'][0][1],
-    #                 element['values'][0][2]
-    #             ]
-
-    #             self.logger.info(
-    #                 "UavInterface",
-    #                 "run_uav_mission",
-    #                 f"UAV {self.drone_id}. Go to {waypoint} and speed {speed}")
-    #             self.go_to(*waypoint, speed, self._yaw_mode.mode,
-    #                        self._yaw_mode.angle)
-
-    #         elif element['name'] == 'Area':
-    #             waypoints = element['values']
-    #             self.logger.info(
-    #                 "UavInterface",
-    #                 "run_uav_mission",
-    #                 f"UAV {self.drone_id}. Area path {waypoints} and speed {speed}")
-    #             print("Area path: ", waypoints)
-    #             self.follow_path(waypoints, speed,
-    #                              self._yaw_mode.mode, self._yaw_mode.angle)
-    #             # for waypoint in waypoints:
-    #             #     self.go_to(*waypoint, speed, self._yaw_mode.mode,
-    #             #               self._yaw_mode.angle)
-
-    #         else:
-    #             # print("Unknown layer")
-    #             # print("Element: ", element)
-    #             raise Exception(
-    #                 "Unknown mission element name: ", element['name'])
-
-    #     self.logger.info(
-    #         "UavInterface",
-    #         "run_uav_mission",
-    #         f"UAV {self.drone_id}. Mission finished")
 
 
 class UavManager():
@@ -492,9 +381,9 @@ class UavManager():
                         pose = [1.0+idx, 1.0+idx, 0.0, 0.0]
                     else:
                         pose = [
-                            40.158194+idx*0.0001,
-                            -3.3807955+idx*0.0001,
-                            0.067396380007267,
+                            GPS_COORDINATES[0]+idx*0.0001,
+                            GPS_COORDINATES[1]+idx*0.0001,
+                            GPS_COORDINATES[2],
                             -0.00735415557174667]
                     self.client.info_messages.send_uav_info({
                         'id': uav,
