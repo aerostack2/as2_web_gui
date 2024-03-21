@@ -26,7 +26,7 @@ from AerostackUI.websocket_interface import WebSocketClientInterface
 from AerostackUI.aerostack_ui_logger import AerostackUILogger
 
 
-VIRTUAL_MODE = True
+VIRTUAL_MODE = False
 GPS_COORDINATES = [40.337236, -3.886678, 0.01]
 YAW_ANGLE = radians(135.0) # 135.0º
 GIMBAL_ANGLE = -60.0
