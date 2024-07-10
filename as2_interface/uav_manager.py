@@ -26,10 +26,10 @@ from AerostackUI.websocket_interface import WebSocketClientInterface
 from AerostackUI.aerostack_ui_logger import AerostackUILogger
 
 
-VIRTUAL_MODE = False
-GPS_COORDINATES = [40.337236, -3.886678, 0.01]
-YAW_ANGLE = radians(135.0) # 135.0º
-GIMBAL_ANGLE = -60.0
+VIRTUAL_MODE = False 
+GPS_COORDINATES = [40.158596,-3.811539, 0.0]
+YAW_ANGLE = radians(0.0) # 135.0º
+GIMBAL_ANGLE = 0.0
 
 
 class UavInterface(DroneInterfaceBase):
@@ -56,7 +56,7 @@ class UavInterface(DroneInterfaceBase):
 
         self._sim_mode = sim_mode
         self._yaw_mode = YawMode()
-        self._yaw_mode.mode = YawMode.FIXED_YAW
+        self._yaw_mode.mode = YawMode.KEEP_YAW
         self._yaw_mode.angle = YAW_ANGLE
 
         # ROS 2 Mission interpreter

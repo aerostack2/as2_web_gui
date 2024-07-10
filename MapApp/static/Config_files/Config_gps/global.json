@@ -1,5 +1,5 @@
 {
-    "mapCenter": [40.337967, -3.882502],
+    "mapCenter": [40.158596,-3.811539],
     "mapZoom": 20,
     "mapUrl": "http://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}",
     "subdomains": ["mt0", "mt1", "mt2", "mt3"],
