@@ -57,3 +57,11 @@ In `Config_gps/` the following parameters can be configured for GPS coordinates 
 - `global.json`: Map configuration, such as map center, zoom, map source, etc.
 - `layers.json`: Map layers configuration, setting default color and add parameters to be configured such as swarm algorithm.
 - `sidebars.json`: Sidebars configuration, settings default parameters values.
+
+## Using Aerostack2
+
+Remember to have the Aerostack2 running and the mission executor for each UAV.
+
+```
+ros2 run as2_python_api mission_executor --n drone0 --add_namespace
+```
