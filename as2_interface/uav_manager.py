@@ -27,7 +27,7 @@ from AerostackUI.aerostack_ui_logger import AerostackUILogger
 
 
 VIRTUAL_MODE = False 
-GPS_COORDINATES = [40.158596,-3.811539, 0.0]
+GPS_COORDINATES = [40.4405, -3.68982, 0.0]
 YAW_ANGLE = radians(0.0) # 135.0º
 GIMBAL_ANGLE = 0.0
 
@@ -128,7 +128,6 @@ class UavInterface(DroneInterfaceBase):
         """ Pause UAV mission """
         if VIRTUAL_MODE:
             return self.__virtual_mission_status_change()
-        # return DroneBehaviorManager.pause_all_behaviors(self)
         mission_update = MissionUpdate()
         mission_update.drone_id = self.namespace
         mission_update.action = MissionUpdate.PAUSE
@@ -140,7 +139,6 @@ class UavInterface(DroneInterfaceBase):
         """ Resume UAV mission """
         if VIRTUAL_MODE:
             return self.__virtual_mission_status_change()
-        # return DroneBehaviorManager.resume_all_behaviors(self)
         mission_update = MissionUpdate()
         mission_update.drone_id = self.namespace
         mission_update.action = MissionUpdate.RESUME
@@ -150,10 +148,8 @@ class UavInterface(DroneInterfaceBase):
 
     def stop_mission(self) -> None:
         """ Stop UAV mission """
-        # self._stop_event.set()
         if VIRTUAL_MODE:
             return self.__virtual_mission_status_change()
-        # return DroneBehaviorManager.stop_all_behaviors(self)
 
         mission = Mission(target=self.namespace, verbose=True)
         mission.plan.append(MissionItem(behavior='rtl', args={
@@ -196,15 +192,16 @@ class UavInterface(DroneInterfaceBase):
                     'speed': speed, 'yaw_mode': self._yaw_mode.mode,
                     'yaw_angle': self._yaw_mode.angle, 'wait': True
                 }))
-                if GIMBAL_ANGLE != 0.0:
-                    x = 1.0
-                    z = x * tan(radians(GIMBAL_ANGLE))
-                    mission.plan.append(MissionItem(
-                        behavior='point_gimbal',
-                        args={
-                            '_x': x, '_y': 0.0, '_z': z, 'frame_id': f"{self.namespace}/base_link",
-                            'wait': True
-                    }))
+                # Enable Gimbal reset
+                # if GIMBAL_ANGLE != 0.0:
+                #     x = 1.0
+                #     z = x * tan(radians(GIMBAL_ANGLE))
+                #     mission.plan.append(MissionItem(
+                #         behavior='point_gimbal',
+                #         args={
+                #             '_x': x, '_y': 0.0, '_z': z, 'frame_id': f"{self.namespace}/base_link",
+                #             'wait': True
+                #     }))
 
             elif element['name'] == 'LandPoint':
                 waypoint = [
@@ -217,25 +214,21 @@ class UavInterface(DroneInterfaceBase):
                     'speed': speed, 'yaw_mode': self._yaw_mode.mode,
                     'yaw_angle': self._yaw_mode.angle, 'wait': True
                 }))
-                if GIMBAL_ANGLE != 0.0:
-                    mission.plan.append(MissionItem(
-                        behavior='point_gimbal',
-                        args={
-                            '_x': 1.0, '_y': 0.0, '_z': 0.0,
-                            'frame_id': f"{self.namespace}/base_link",
-                            'wait': True
-                    }))
+                # Enable Gimbal reset
+                # if GIMBAL_ANGLE != 0.0:
+                #     mission.plan.append(MissionItem(
+                #         behavior='point_gimbal',
+                #         args={
+                #             '_x': 1.0, '_y': 0.0, '_z': 0.0,
+                #             'frame_id': f"{self.namespace}/base_link",
+                #             'wait': True
+                #     }))
                 mission.plan.append(MissionItem(
                     behavior='land', args={'speed': speed}))
 
             elif element['name'] == 'Path':
                 waypoints = element['values']
                 for waypoint in waypoints:
-                    # mission.plan.append(MissionItem(behavior='go_to', args={
-                    #     '_x': waypoint[0], '_y': waypoint[1], '_z': waypoint[2],
-                    #     'speed': speed, 'yaw_mode': self._yaw_mode.mode,
-                    #     'yaw_angle': self._yaw_mode.angle, 'frame_id': 'earth', 'wait': True
-                    # }))
                     mission.plan.append(MissionItem(behavior='go_to_gps', args={
                         'lat': waypoint[0], 'lon': waypoint[1], 'alt': waypoint[2],
                         'speed': speed, 'yaw_mode': self._yaw_mode.mode,
@@ -309,8 +302,6 @@ class UavManager():
         for uav_id in uav_id_list:
             self.drones_interfaces[uav_id] = UavInterface(
                 uav_id, logger, sim_mode, use_sim_time, use_cartesian_coordinates)
-            # origin = [40.158194, -3.3805597, 830]
-            # drone_node.gps.set_origin(origin)
 
         self.get_info_thread = threading.Thread(target=self.run)
         self.get_info_thread.start()

@@ -5,7 +5,7 @@
     "subdomains": ["mt0", "mt1", "mt2", "mt3"],
     "subdomainsLabels": ["Hybrid", "Streets", "Satellite", "Terrain"],
     "subdomainsMaxZoom": [22, 22, 22, 22],
-    "useCache": true,
+    "useCache": false,
     "saveToCache": true,
     "useOnlyCache": false,
     "cacheMaxAgeInMs": 86400,
