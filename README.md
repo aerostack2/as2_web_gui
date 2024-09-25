@@ -1,5 +1,7 @@
 # Aerostack2 Web-GUI
 
+<img src="docs/resources/as2_web_gui.png" alt="as2_web_gui" width="50%"/>
+
 ## Requirements
 Install dependencies:
 ```
