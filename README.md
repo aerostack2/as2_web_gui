@@ -6,6 +6,10 @@ Install dependencies:
 pip install -r requirements.txt
 ```
 
+## System Architecture
+
+Detailed architecture of the Aerostack2 Web GUI is described in [Aerostack2 Web GUI Architecture](docs/README.md)
+
 ## Run Aerostack2 Graphical User Interface server
 ```
 python3 manage.py runserver
