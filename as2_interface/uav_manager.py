@@ -279,10 +279,19 @@ class UavInterface(DroneInterfaceBase):
 
             elif element['name'] == 'Area':
                 waypoints = element['values']
-                mission.plan.append(MissionItem(behavior='follow_path_gps', args={
-                    'geopath': waypoints, 'speed': speed, 'yaw_mode': self._yaw_mode.mode,
-                    'yaw_angle': self._yaw_mode.angle, 'wait': True
-                }))
+                for wp in waypoints:
+                    mission.plan.append(MissionItem(
+                        behavior='go_to_gps',
+                        args = {
+                            'lat' : wp[0], 'lon' : wp[1], 'alt' : wp[2],
+                            'speed' : speed, 'yaw_mode' : self._yaw_mode.mode, 'yaw_angle' : self._yaw_mode.angle
+                            , 'wait' : True
+                        }
+                    ))
+                # mission.plan.append(MissionItem(behavior='follow_path_gps', args={
+                #     'geopath': waypoints, 'speed': speed, 'yaw_mode': self._yaw_mode.mode,
+                #     'yaw_angle': self._yaw_mode.angle, 'wait': True
+                # }))
             else:
                 raise Exception(
                     "Unknown mission element name: ", element['name'])
