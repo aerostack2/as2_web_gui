@@ -13,7 +13,7 @@
 
     },
     "MissionPlanner": {
-        "defaultHeight": 10.0,
+        "defaultHeight": 30.0,
         "defaultSpeed": 1.0
     },
     "MissionInfo": {

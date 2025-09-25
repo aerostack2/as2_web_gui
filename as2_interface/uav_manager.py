@@ -404,15 +404,15 @@ class UavManager():
         while self.client.connection:
             for idx, uav in enumerate(self.uav_id_list):
 
-                if VIRTUAL_MODE:
+                if uav == 'UPO':
                     sleep(1.0)
                     pose = []
                     if self.use_cartesian_coordinates:
                         pose = [1.0+idx, 1.0+idx, 0.0, 0.0]
                     else:
                         pose = [
-                            GPS_COORDINATES[0]+idx*0.0001,
-                            GPS_COORDINATES[1]+idx*0.0001,
+                            39.79421,
+                            -4.07989,
                             GPS_COORDINATES[2],
                             -0.00735415557174667]
                     self.client.info_messages.send_uav_info({
